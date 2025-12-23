@@ -1,6 +1,40 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import gsap from "gsap";
+
+const roles = ["steve", "frontend", "selftaughtdev", "problemsolver"];
 
 const Footer = () => {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (textRef.current) {
+        // Fade out
+        gsap.to(textRef.current, {
+          opacity: 0,
+          y: -20,
+          duration: 0.5,
+          ease: "power2.inOut",
+          onComplete: () => {
+            setCurrentRoleIndex((prev) => (prev + 1) % roles.length);
+            // Fade in
+            if (textRef.current) {
+              gsap.fromTo(
+                textRef.current,
+                { opacity: 0, y: 20 },
+                { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+              );
+            }
+          },
+        });
+      }
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <footer className="bg-foreground text-card py-12">
       <div className="container mx-auto px-6">
@@ -64,9 +98,22 @@ const Footer = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-center text-card/40 text-xs">
+          <p className="text-center text-card/40 text-xs mb-6">
             Building Champions • Fostering Community • Celebrating Excellence
           </p>
+
+          {/* GSAP Fading Text */}
+          <div className="text-center">
+            <p className="text-card/50 text-sm mb-2">Developed by</p>
+            <div className="h-10 flex items-center justify-center">
+              <span
+                ref={textRef}
+                className="text-2xl md:text-3xl font-display text-primary tracking-wider"
+              >
+                {roles[currentRoleIndex]}
+              </span>
+            </div>
+          </div>
         </motion.div>
       </div>
     </footer>

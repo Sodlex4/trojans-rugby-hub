@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Edit2, Trash2, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TeamMember {
@@ -34,16 +34,65 @@ const positions = [
   "Full-Back",
 ];
 
+const positionSuggestions = [
+  "Hooker",
+  "Flanker",
+  "Prop",
+  "Lock",
+  "Number 8",
+  "Scrum-Half",
+  "Fly-Half",
+  "Centre",
+  "Wing",
+  "Full-Back",
+];
+
 const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: TeamSectionProps) => {
   const [selectedPosition, setSelectedPosition] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const filteredTeam =
-    selectedPosition === "All"
-      ? teamMembers
-      : teamMembers.filter(
-          (member) =>
-            member.category === selectedPosition || member.position === selectedPosition
-        );
+  const filteredSuggestions = useMemo(() => {
+    if (!searchQuery) return positionSuggestions;
+    return positionSuggestions.filter((pos) =>
+      pos.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredTeam = useMemo(() => {
+    let result = teamMembers;
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (member) =>
+          member.name.toLowerCase().includes(query) ||
+          member.position.toLowerCase().includes(query) ||
+          member.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by position
+    if (selectedPosition !== "All") {
+      result = result.filter(
+        (member) =>
+          member.category === selectedPosition || member.position === selectedPosition
+      );
+    }
+
+    return result;
+  }, [teamMembers, searchQuery, selectedPosition]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowSuggestions(false);
+  };
 
   return (
     <section id="team" className="py-20 md:py-28 bg-card">
@@ -58,6 +107,67 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
         >
           <h2 className="section-title">OUR TEAM</h2>
           <div className="section-divider" />
+        </motion.div>
+
+        {/* Search Bar */}
+        <motion.div
+          className="max-w-md mx-auto mb-8 relative"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+            <input
+              type="text"
+              placeholder="Search players by name or position..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              className="w-full pl-12 pr-10 py-3 rounded-full border border-border bg-background
+                       focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
+                       transition-all text-foreground placeholder:text-muted-foreground"
+            />
+            {searchQuery && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground 
+                         hover:text-foreground transition-colors"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          {/* Suggestions Dropdown */}
+          <AnimatePresence>
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <motion.div
+                className="absolute top-full left-0 right-0 mt-2 bg-card border border-border 
+                         rounded-xl shadow-lg overflow-hidden z-20"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <p className="px-4 py-2 text-xs text-muted-foreground font-semibold uppercase tracking-wide border-b border-border">
+                  Position Suggestions
+                </p>
+                {filteredSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onMouseDown={() => handleSuggestionClick(suggestion)}
+                    className="w-full px-4 py-2.5 text-left text-foreground hover:bg-primary/10 
+                             hover:text-primary transition-colors flex items-center gap-2"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-primary/50" />
+                    {suggestion}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Position Filter */}
@@ -158,7 +268,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            No players found for this position.
+            No players found. Try a different search or filter.
           </motion.p>
         )}
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Menu, X, LogOut, Plus } from "lucide-react";
+import { Menu, X, LogOut, Plus, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
   onLogin: () => void;
   onLogout: () => void;
   onAddPlayer: () => void;
+  onOpenDashboard: () => void;
   scrollToSection: (section: string) => void;
 }
 
@@ -17,6 +18,7 @@ const Header = ({
   onLogin,
   onLogout,
   onAddPlayer,
+  onOpenDashboard,
   scrollToSection,
 }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -76,16 +78,28 @@ const Header = ({
             ) : (
               <div className="flex items-center gap-4">
                 {isAdmin && (
-                  <motion.button
-                    onClick={onAddPlayer}
-                    className="bg-trojan-gold text-foreground px-4 py-2 rounded-full font-bold
-                             hover:opacity-90 transition-all duration-300 flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Plus size={16} />
-                    Add Player
-                  </motion.button>
+                  <>
+                    <motion.button
+                      onClick={onOpenDashboard}
+                      className="bg-primary-foreground/20 text-primary-foreground px-4 py-2 rounded-full font-bold
+                               hover:bg-primary-foreground/30 transition-all duration-300 flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </motion.button>
+                    <motion.button
+                      onClick={onAddPlayer}
+                      className="bg-trojan-gold text-foreground px-4 py-2 rounded-full font-bold
+                               hover:opacity-90 transition-all duration-300 flex items-center gap-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Plus size={16} />
+                      Add Player
+                    </motion.button>
+                  </>
                 )}
                 <motion.button
                   onClick={onLogout}
@@ -139,14 +153,26 @@ const Header = ({
                   JOIN US
                 </button>
               ) : (
-                <button
-                  onClick={onLogout}
-                  className="bg-accent text-accent-foreground px-6 py-2 rounded-full font-bold
-                           hover:bg-trojan-red-dark transition-all duration-300 flex items-center gap-2 w-fit"
-                >
-                  <LogOut size={16} />
-                  Logout
-                </button>
+                <div className="flex flex-col gap-2">
+                  {isAdmin && (
+                    <button
+                      onClick={onOpenDashboard}
+                      className="bg-primary-foreground/20 text-primary-foreground px-6 py-2 rounded-full font-bold
+                               hover:bg-primary-foreground/30 transition-all duration-300 flex items-center gap-2 w-fit"
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </button>
+                  )}
+                  <button
+                    onClick={onLogout}
+                    className="bg-accent text-accent-foreground px-6 py-2 rounded-full font-bold
+                             hover:bg-trojan-red-dark transition-all duration-300 flex items-center gap-2 w-fit"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
               )}
             </motion.nav>
           )}
