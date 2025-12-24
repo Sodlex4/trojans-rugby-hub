@@ -18,6 +18,8 @@ import heroSlide3 from "@/assets/hero-slide-3.jpg";
 import heroSlide4 from "@/assets/hero-slide-4.jpg";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
 import steveOdongo from "@/assets/steve-odongo.jpg";
+import jere9 from "@/assets/jere9.jpg";
+import bradley from "@/assets/Bradley-Thomas.jpg";
 
 interface TeamMember {
   id: number;
@@ -60,7 +62,7 @@ const slides = [
   },
   {
     id: 4,
-    title: "TROJAN TUKO SAWA",
+    title: "TROJAN TUKO SAWA MUNGU",
     description:
       "Brotherhood, teamwork, and unwavering commitment define the Trojans spirit.",
     image: heroSlide4,
@@ -112,7 +114,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Bradley Thomas",
     position: "Lock",
     number: "5",
-    image: "@/assets/Telegram Desktop/Bradley-Thomas.jpg",
+    image: bradley,
     category: "Forwards",
   },
   {
@@ -232,19 +234,19 @@ const initialNewsItems: NewsItem[] = [
   },
   {
     id: 2,
-    date: "18. DECEMBER 2024",
+    date: "21. DECEMBER 2025",
     title: "New Players Join the Squad",
     description:
       "We welcome three talented new players to the Trojans family! Fresh talent ready to make their mark on the field.",
-    image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80",
   },
   {
     id: 3,
-    date: "15. DECEMBER 2024",
+    date: "21. DECEMBER 2025",
     title: "BingwaFest Kenya - Road to Finals",
     description:
       "Relive our incredible journey through the BingwaFest Kenya tournament. From group stages to the grand finale!",
-    image: "https://images.unsplash.com/photo-1486286701208-1d58e9338013?w=600&q=80",
+    image: jere9,
   },
   {
     id: 4,
