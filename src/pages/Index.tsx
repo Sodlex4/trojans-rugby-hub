@@ -20,6 +20,15 @@ import heroSlide5 from "@/assets/hero-slide-5.jpg";
 import steveOdongo from "@/assets/steve-odongo.jpg";
 import jere9 from "@/assets/jere9.jpg";
 import bradley from "@/assets/Bradley-Thomas.jpg";
+import cliford from "@/assets/clifford-mukaria.jpg"
+import MARK from "@/assets/MARK-NGUGI.jpg"
+import Elvis from "@/assets/Elvis-Obiero.jpg"
+import ANDRE from "@/assets/andre-obure.jpg"
+import Anyega from "@/assets/Anyega-NEWTON.jpg" 
+
+
+
+
 
 interface TeamMember {
   id: number;
@@ -82,7 +91,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Andre Obure",
     position: "Prop",
     number: "1",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: ANDRE,
     category: "Forwards",
   },
   {
@@ -98,7 +107,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Anyega Newton",
     position: "Prop",
     number: "3",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: Anyega,
     category: "Forwards",
   },
   {
@@ -159,26 +168,26 @@ const initialTeamMembers: TeamMember[] = [
   },
   {
     id: 14,
-    name: "Player 13",
+    name: "Clifford Mukuria",
     position: "Wing",
     number: "11",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-07.jpg",
+    image: cliford,
     category: "Backs",
   },
   {
     id: 15,
-    name: "Player 14",
-    position: "Centre",
+    name: "MARK NGUGI",
+    position: "PROP",
     number: "12",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-08.jpg",
-    category: "Backs",
+    image:MARK,
+    category: "Forwards",
   },
   {
     id: 16,
-    name: "Player 15",
+    name: "Elvis Obiero",
     position: "Centre",
     number: "13",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-10.jpg",
+    image:Elvis,
     category: "Backs",
   },
   {
