@@ -22,6 +22,7 @@ const positions = [
   "All",
   "Forwards",
   "Backs",
+  "Staff",
   "Scrum-Half",
   "Fly-Half",
   "Prop",
@@ -45,6 +46,9 @@ const positionSuggestions = [
   "Centre",
   "Wing",
   "Full-Back",
+  "Head Coach",
+  "Manager",
+  "Physio",
 ];
 
 const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: TeamSectionProps) => {

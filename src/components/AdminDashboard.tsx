@@ -31,7 +31,8 @@ interface AdminDashboardProps {
 
 const positions = [
   "Prop", "Hooker", "Lock", "Flanker", "Number 8",
-  "Scrum-Half", "Fly-Half", "Centre", "Wing", "Full-Back"
+  "Scrum-Half", "Fly-Half", "Centre", "Wing", "Full-Back",
+  "Head Coach", "Manager", "Physio"
 ];
 
 const AdminDashboard = ({

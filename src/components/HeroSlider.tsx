@@ -53,7 +53,7 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 <div className="absolute inset-0 bg-hero-gradient" />
                 
                 {/* Decorative Elements */}
-                <div className="absolute top-1/4 left-10 w-32 h-32 border-2 border-primary-foreground/20 rounded-full animate-float" />
+                <div className="absolute top-1/4 left-10 w-32 h-20 bg-green-600 rounded-full animate-float border-2 border-white/30 shadow-lg" style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }} />
                 <div className="absolute bottom-1/4 right-20 w-20 h-20 border-2 border-accent/30 rounded-full animate-float" style={{ animationDelay: "1s" }} />
 
                 {/* Content */}
