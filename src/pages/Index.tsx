@@ -25,6 +25,11 @@ import MARK from "@/assets/MARK-NGUGI.jpg"
 import Elvis from "@/assets/Elvis-Obiero.jpg"
 import ANDRE from "@/assets/andre-obure.jpg"
 import Anyega from "@/assets/Anyega-NEWTON.jpg" 
+import isaac from "@/assets/Isaac-waraba.jpg"
+import jeremiah from "@/assets/jeremiah- ogutu.jpg"
+import reagan from "@/assets/reagan.jpg"
+import Worship from "@/assets/worship.jpg"
+import sami from "@/assets/sami.jpg"
 
 
 
@@ -115,7 +120,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Waraba Isaac",
     position: "Lock",
     number: "4",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: isaac,
     category: "Forwards",
   },
   {
@@ -216,22 +221,31 @@ const initialTeamMembers: TeamMember[] = [
   },
   {
     id: 11,
-    name: "Ivy Nduta",
+    name: "reagan kamau",
     position: "Manager",
     number: "",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: reagan,
     category: "Staff",
   },
   {
     id: 12,
-    name: "Faith Wavinya",
+    name:" Worship",
     position: "Physio",
     number: "",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image:Worship,
     category: "Staff",
   },
-];
+  
+  {
+    id: 19,
+    name: "jeremiah Ogutu",
+    position: "Scrum-Half",
+    number: "9",
+    image:jeremiah,
+    category: "Backs",
+  }
 
+];
 const initialNewsItems: NewsItem[] = [
   {
     id: 1,
@@ -244,10 +258,10 @@ const initialNewsItems: NewsItem[] = [
   {
     id: 2,
     date: "21. DECEMBER 2025",
-    title: "New Players Join the Squad",
+    title: "celebrations of tears and joy from Trojans captaion Sam ",
     description:
-      "We welcome three talented new players to the Trojans family! Fresh talent ready to make their mark on the field.",
-    image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=600&q=80",
+  "From the final whistle to the celebrations that followed, captain Sam’s tears of joy captured the passion, sacrifice, and unity of the Trojans.",
+    image: sami,
   },
   {
     id: 3,
