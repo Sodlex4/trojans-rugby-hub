@@ -31,6 +31,9 @@ const positions = [
   "Centre",
   "Wing",
   "Full-Back",
+  "Head Coach",
+  "Manager",
+  "Physio",
 ];
 
 const PlayerModal = ({ isOpen, onClose, player, onSave, isEditing }: PlayerModalProps) => {

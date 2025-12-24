@@ -1,5 +1,6 @@
 import { Trophy, Users, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import heroSlide2 from "@/assets/hero-slide-2.jpg";
 
 const stats = [
   { icon: Trophy, value: "15+", label: "Trophies" },
@@ -34,7 +35,7 @@ const AboutSection = () => {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-card">
               <img
-                src="https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=800&q=80"
+                src={heroSlide2}
                 alt="Rugby team celebration"
                 className="w-full h-auto object-cover"
               />
