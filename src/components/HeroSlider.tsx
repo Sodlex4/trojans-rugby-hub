@@ -43,12 +43,10 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 transition={{ duration: 0.8 }}
               >
                 {/* Background Image */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center scale-105"
-                  style={{
-                    backgroundImage: `url(${slide.image})`,
-                    filter: "brightness(0.6)",
-                  }}
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className="absolute inset-0 w-full h-full object-contain object-center"
                 />
                 
                 {/* Gradient Overlay */}

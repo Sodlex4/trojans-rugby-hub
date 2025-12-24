@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X, LogOut, Plus, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import heroSlide5 from "@/assets/hero-slide-5.jpg";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -41,6 +42,7 @@ const Header = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
+            <img src={heroSlide5} alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
             <div className="text-primary-foreground">
               <h1 className="text-3xl md:text-4xl font-display tracking-wider">TROJANS</h1>
               <p className="text-sm tracking-[0.3em] opacity-90">MURANG'A</p>

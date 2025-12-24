@@ -17,6 +17,7 @@ import heroSlide2 from "@/assets/hero-slide-2.jpg";
 import heroSlide3 from "@/assets/hero-slide-3.jpg";
 import heroSlide4 from "@/assets/hero-slide-4.jpg";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
+import steveOdongo from "@/assets/steve-odongo.jpg";
 
 interface TeamMember {
   id: number;
@@ -59,7 +60,7 @@ const slides = [
   },
   {
     id: 4,
-    title: "United We Stand",
+    title: "TROJAN TUKO SAWA",
     description:
       "Brotherhood, teamwork, and unwavering commitment define the Trojans spirit.",
     image: heroSlide4,
@@ -87,7 +88,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Steve Odongo",
     position: "Hooker",
     number: "2",
-    image: "https://images.unsplash.com/photo-1566753323558-f4e0952af115?w=400&q=80",
+    image: steveOdongo,
     category: "Forwards",
   },
   {

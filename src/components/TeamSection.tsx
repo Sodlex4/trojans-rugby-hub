@@ -210,11 +210,11 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 {/* Image Container */}
-                <div className="relative overflow-hidden">
+                <div className="relative overflow-hidden bg-white">
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-72 object-cover transition-transform duration-500 
+                    className="w-full h-72 aspect-square object-contain transition-transform duration-500 
                              group-hover:scale-110"
                   />
                   
