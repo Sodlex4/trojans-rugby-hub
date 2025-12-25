@@ -30,7 +30,16 @@ import jeremiah from "@/assets/jeremiah- ogutu.jpg"
 import reagan from "@/assets/reagan.jpg"
 import Worship from "@/assets/worship.jpg"
 import sami from "@/assets/sami.jpg"
-
+import Dennis from "@/assets/Dennis-Otieno.jpg"
+import simon from "@/assets/koigi-simon.jpg"
+import Brian from "@/assets/Brian-selete.jpg"
+import Cornelius from "@/assets/cornelius-Kiptum.jpg"
+import Patrick from "@/assets/Patrick-Apiri.jpg"
+import Hanish from "@/assets/hanish-ochieng.jpg"
+import peter from "@/assets/Peter-Mwendwa.jpg"
+import Ireri from "@/assets/Ireri-bRIAN.jpg"
+import James from "@/assets/James-Waithaka.jpg"
+import Samuel from "@/assets/Samuel-Nyanga.jpg"
 
 
 
@@ -133,42 +142,42 @@ const initialTeamMembers: TeamMember[] = [
   },
   {
     id: 6,
-    name: "David Mwangi",
+    name: "Dennis Otieno",
     position: "Flanker",
     number: "6",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: Dennis,
     category: "Forwards",
   },
   {
     id: 7,
-    name: "Samuel Ochieng",
+    name: "Simon koigi",
     position: "Flanker",
     number: "7",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: simon,
     category: "Forwards",
   },
   {
     id: 8,
-    name: "Michael Otieno",
-    position: "Number 8",
-    number: "8",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    name: "Peter Mwendwa",
+    position: "wing",
+    number: "11",
+    image: peter,
     category: "Forwards",
   },
   {
     id: 5,
-    name: "Peter Wanjiku",
-    position: "Lock",
-    number: "9",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    name: "Hanish-Ochieng",
+    position: "Flanker",
+    number: "7",
+    image: Hanish,
     category: "Forwards",
   },
   {
     id: 13,
-    name: "Player 12",
-    position: "Fly-Half",
-    number: "10",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-05.jpg",
+    name: "Corneilius Kiptum",
+    position: "centre",
+    number: "12",
+    image: Cornelius,
     category: "Backs",
   },
   {
@@ -183,7 +192,7 @@ const initialTeamMembers: TeamMember[] = [
     id: 15,
     name: "MARK NGUGI",
     position: "PROP",
-    number: "12",
+    number: "1",
     image:MARK,
     category: "Forwards",
   },
@@ -197,18 +206,18 @@ const initialTeamMembers: TeamMember[] = [
   },
   {
     id: 17,
-    name: "Player 16",
-    position: "Wing",
-    number: "14",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-11.jpg",
+    name: "Patrick Apiri",
+    position: "Centre",
+    number: "12",
+    image: Patrick,
     category: "Backs",
   },
   {
     id: 18,
-    name: "Player 17",
+    name: "Brian-Selete",
     position: "Fullback",
     number: "15",
-    image: "@/assets/Telegram Desktop/photo_2025-12-23_13-59-26.jpg",
+    image: Brian,
     category: "Backs",
   },
   {
@@ -243,7 +252,34 @@ const initialTeamMembers: TeamMember[] = [
     number: "9",
     image:jeremiah,
     category: "Backs",
-  }
+  },
+
+{
+    id: 20,
+    name: "Brian Ireri",
+    position: "Wing",
+    number: "14",
+    image:Ireri,
+    category: "Backs",
+ },
+{
+    id: 50,
+    name: "James Waithaka",
+    position: "Scrum-Half",
+    number: "9",
+    image:James,
+    category: "Backs",
+ },
+ 
+ {   id: 49,
+    name: "Sam Nyanga",
+    position: "Fly-Half",
+    number: "10",
+    image:Samuel,
+    category: "Backs",
+ }
+ 
+  
 
 ];
 const initialNewsItems: NewsItem[] = [
@@ -258,7 +294,7 @@ const initialNewsItems: NewsItem[] = [
   {
     id: 2,
     date: "21. DECEMBER 2025",
-    title: "celebrations of tears and joy from Trojans captaion Sam ",
+    title: "celebrations of tears and joy from Trojans captain Sam ",
     description:
   "From the final whistle to the celebrations that followed, captain Sam’s tears of joy captured the passion, sacrifice, and unity of the Trojans.",
     image: sami,
