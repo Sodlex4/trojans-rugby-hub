@@ -35,11 +35,12 @@ import simon from "@/assets/koigi-simon.jpg"
 import Brian from "@/assets/Brian-selete.jpg"
 import Cornelius from "@/assets/cornelius-Kiptum.jpg"
 import Patrick from "@/assets/Patrick-Apiri.jpg"
-import Hanish from "@/assets/hanish-ochieng.jpg"
+import Hanish from "@/assets/Hanish-Ochieng.jpg"
 import peter from "@/assets/Peter-Mwendwa.jpg"
 import Ireri from "@/assets/Ireri-bRIAN.jpg"
 import James from "@/assets/James-Waithaka.jpg"
 import Samuel from "@/assets/Samuel-Nyanga.jpg"
+import Kelvin from"@/assets/Kelvin-Xavier.jpg"
 
 
 
@@ -215,7 +216,7 @@ const initialTeamMembers: TeamMember[] = [
   {
     id: 18,
     name: "Brian-Selete",
-    position: "Fullback",
+    position:"Full-Back",
     number: "15",
     image: Brian,
     category: "Backs",
@@ -225,7 +226,7 @@ const initialTeamMembers: TeamMember[] = [
     name: "Kelvin Xavier",
     position: "Head Coach",
     number: "",
-    image: "@/assets/Telegram Desktop/team.jpg",
+    image: Kelvin,
     category: "Staff",
   },
   {
@@ -247,7 +248,7 @@ const initialTeamMembers: TeamMember[] = [
   
   {
     id: 19,
-    name: "jeremiah Ogutu",
+    name: "jeremy Ogutu",
     position: "Scrum-Half",
     number: "9",
     image:jeremiah,
