@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Edit2, Trash2, Search, X } from "lucide-react";
+import { Edit2, Trash2, Search, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TeamMember {
@@ -18,20 +18,18 @@ interface TeamSectionProps {
   onDeletePlayer: (id: number) => void;
 }
 
-const positions = [
-  "All",
-  "Forwards",
-  "Backs",
-  "Staff",
-  "Scrum-Half",
-  "Fly-Half",
+const primaryFilters = ["All", "Forwards", "Backs", "Staff"];
+
+const specificPositions = [
   "Prop",
   "Hooker",
   "Lock",
   "Flanker",
   "Number 8",
-  "Wing",
+  "Scrum-Half",
+  "Fly-Half",
   "Centre",
+  "Wing",
   "Full-Back",
 ];
 
@@ -55,6 +53,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
   const [selectedPosition, setSelectedPosition] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSpecificPositions, setShowSpecificPositions] = useState(false);
 
   const filteredSuggestions = useMemo(() => {
     if (!searchQuery) return positionSuggestions;
@@ -99,7 +98,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
   };
 
   return (
-    <section id="team" className="py-20 md:py-28 bg-card">
+    <section id="team" className="py-20 md:py-28 bg-card scroll-mt-20">
       <div className="container mx-auto px-6">
         {/* Section Title */}
         <motion.div
@@ -176,25 +175,77 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
 
         {/* Position Filter */}
         <motion.div
-          className="mb-12 flex flex-wrap justify-center gap-3"
+          className="mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {positions.map((position) => (
+          {/* Primary Filters */}
+          <div className="flex flex-wrap justify-center gap-3 mb-4">
+            {primaryFilters.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => {
+                  setSelectedPosition(filter);
+                  if (filter !== "All") setShowSpecificPositions(false);
+                }}
+                className={`filter-btn ${
+                  selectedPosition === filter
+                    ? "filter-btn-active"
+                    : "filter-btn-inactive"
+                }`}
+                aria-pressed={selectedPosition === filter}
+              >
+                {filter}
+              </button>
+            ))}
             <button
-              key={position}
-              onClick={() => setSelectedPosition(position)}
-              className={`filter-btn ${
-                selectedPosition === position
+              onClick={() => setShowSpecificPositions(!showSpecificPositions)}
+              className={`filter-btn flex items-center gap-1 ${
+                specificPositions.includes(selectedPosition)
                   ? "filter-btn-active"
                   : "filter-btn-inactive"
               }`}
+              aria-expanded={showSpecificPositions}
             >
-              {position}
+              Position
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-200 ${
+                  showSpecificPositions ? "rotate-180" : ""
+                }`}
+              />
             </button>
-          ))}
+          </div>
+
+          {/* Specific Positions (Expandable) */}
+          <AnimatePresence>
+            {showSpecificPositions && (
+              <motion.div
+                className="flex flex-wrap justify-center gap-2"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {specificPositions.map((position) => (
+                  <button
+                    key={position}
+                    onClick={() => setSelectedPosition(position)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      selectedPosition === position
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                    }`}
+                    aria-pressed={selectedPosition === position}
+                  >
+                    {position}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Team Grid */}
@@ -214,12 +265,12 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
                 transition={{ duration: 0.4, delay: index * 0.05 }}
               >
                 {/* Image Container */}
-                <div className="relative overflow-hidden bg-white">
+                <div className="relative overflow-hidden bg-muted">
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-72 aspect-square object-contain transition-transform duration-500 
-                             group-hover:scale-110"
+                    className="w-full h-72 object-cover object-top transition-transform duration-500
+                             group-hover:scale-105"
                   />
                   
                   {/* Jersey Number */}
@@ -256,7 +307,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
 
                 {/* Info */}
                 <div className="p-5 text-center">
-                  <h3 className="text-xl font-display text-foreground tracking-wide mb-1">
+                  <h3 className="text-lg font-display font-bold text-foreground mb-1">
                     {member.name}
                   </h3>
                   <p className="text-primary font-semibold">{member.position}</p>

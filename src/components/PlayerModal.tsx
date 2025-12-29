@@ -88,7 +88,7 @@ const PlayerModal = ({ isOpen, onClose, player, onSave, isEditing }: PlayerModal
           >
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-display text-primary tracking-wide">
+              <h2 className="text-2xl font-display font-bold text-primary uppercase">
                 {isEditing ? "EDIT PLAYER" : "ADD PLAYER"}
               </h2>
               <button
@@ -192,9 +192,9 @@ const PlayerModal = ({ isOpen, onClose, player, onSave, isEditing }: PlayerModal
 
               <motion.button
                 onClick={handleSubmit}
-                className="w-full bg-primary text-primary-foreground py-4 rounded-xl 
-                         font-display text-lg tracking-wide flex items-center justify-center gap-3
-                         hover:bg-trojan-green-dark transition-all duration-300"
+                className="w-full bg-primary text-primary-foreground py-4 rounded-xl
+                         font-display font-bold text-lg uppercase flex items-center justify-center gap-3
+                         hover:bg-trojan-green-dark transition-all duration-300 shadow-glow"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >

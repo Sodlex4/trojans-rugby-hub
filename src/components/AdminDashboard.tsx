@@ -137,7 +137,7 @@ const AdminDashboard = ({
           <div className="bg-primary p-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <LayoutDashboard className="text-primary-foreground" size={28} />
-              <h2 className="text-2xl font-display text-primary-foreground tracking-wide">
+              <h2 className="text-xl font-display font-bold text-primary-foreground uppercase">
                 Admin Dashboard
               </h2>
             </div>

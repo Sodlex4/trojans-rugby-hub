@@ -1,16 +1,14 @@
-@import '@fontsource/plus-jakarta-sans/500.css';
-@import '@fontsource/plus-jakarta-sans/600.css';
-@import '@fontsource/plus-jakarta-sans/700.css';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@import "@fontsource/bebas-neue";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+@import "@fontsource/montserrat/800.css";
 @import "@fontsource/plus-jakarta-sans/400.css";
 @import "@fontsource/plus-jakarta-sans/500.css";
 @import "@fontsource/plus-jakarta-sans/600.css";
 @import "@fontsource/plus-jakarta-sans/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
@@ -135,7 +133,7 @@
 
 @layer components {
   .section-title {
-    @apply text-4xl md:text-5xl lg:text-6xl font-display text-primary tracking-wide;
+    @apply text-3xl md:text-4xl lg:text-5xl font-display font-extrabold text-primary uppercase tracking-tight;
   }
 
   .section-divider {
@@ -147,13 +145,33 @@
   }
 
   .btn-hero {
-    @apply bg-accent text-accent-foreground px-10 py-4 text-lg font-display tracking-wider
+    @apply bg-accent text-accent-foreground px-10 py-4 rounded-full text-lg font-display font-bold uppercase
            hover:bg-trojan-red-dark transition-all duration-300 shadow-button
            hover:shadow-lg hover:scale-105;
   }
 
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-full font-display font-bold uppercase
+           hover:bg-trojan-green-dark transition-all duration-300 shadow-glow;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-accent-foreground px-6 py-2.5 rounded-full font-display font-bold uppercase
+           hover:bg-trojan-red-dark transition-all duration-300 shadow-button;
+  }
+
+  .btn-secondary {
+    @apply bg-primary-foreground/20 text-primary-foreground px-5 py-2.5 rounded-full font-semibold
+           hover:bg-primary-foreground/30 transition-all duration-300;
+  }
+
+  .btn-gold {
+    @apply bg-trojan-gold text-foreground px-5 py-2.5 rounded-full font-semibold
+           hover:opacity-90 transition-all duration-300;
+  }
+
   .btn-nav {
-    @apply text-primary-foreground font-semibold tracking-wide hover:text-trojan-gold 
+    @apply text-primary-foreground font-semibold hover:text-trojan-gold
            transition-colors duration-200;
   }
 
@@ -180,9 +198,9 @@
   }
 
   .jersey-number {
-    @apply absolute top-4 right-4 bg-primary text-primary-foreground 
-           w-12 h-12 rounded-full flex items-center justify-center 
-           font-display text-xl shadow-glow;
+    @apply absolute top-4 right-4 bg-primary text-primary-foreground
+           w-12 h-12 rounded-full flex items-center justify-center
+           font-display font-bold text-xl shadow-glow;
   }
 }
 
