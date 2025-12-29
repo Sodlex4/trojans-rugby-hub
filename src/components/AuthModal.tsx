@@ -55,7 +55,7 @@ const AuthModal = ({ isOpen, onClose, onAuth, initialMode = "login" }: AuthModal
           >
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-3xl font-display text-primary tracking-wide">
+              <h2 className="text-2xl font-display font-bold text-primary uppercase">
                 {mode === "login" ? "LOGIN" : "REGISTER"}
               </h2>
               <button
@@ -116,7 +116,7 @@ const AuthModal = ({ isOpen, onClose, onAuth, initialMode = "login" }: AuthModal
               <motion.button
                 onClick={handleSubmit}
                 className="w-full bg-primary text-primary-foreground py-4 rounded-xl 
-                         font-display text-lg tracking-wide
+                         font-display font-bold text-lg uppercase
                          hover:bg-trojan-green-dark transition-all duration-300"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
