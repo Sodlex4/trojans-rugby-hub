@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 interface NewsItem {
   id: number;
@@ -6,6 +7,7 @@ interface NewsItem {
   title: string;
   description: string;
   image: string;
+  link?: string;
 }
 
 interface NewsSectionProps {
@@ -14,7 +16,7 @@ interface NewsSectionProps {
 
 const NewsSection = ({ newsItems }: NewsSectionProps) => {
   return (
-    <section id="news" className="py-20 md:py-28 bg-primary">
+    <section id="news" className="py-20 md:py-28 bg-primary scroll-mt-20">
       <div className="container mx-auto px-6">
         {/* Section Title */}
         <motion.div
@@ -24,7 +26,7 @@ const NewsSection = ({ newsItems }: NewsSectionProps) => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-display text-primary-foreground tracking-wide">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-extrabold text-primary-foreground uppercase">
             HOT NEWS
           </h2>
           <div className="w-24 h-1.5 bg-accent mx-auto mt-4" />
@@ -58,7 +60,7 @@ const NewsSection = ({ newsItems }: NewsSectionProps) => {
 
               {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-display text-foreground mb-3 tracking-wide 
+                <h3 className="text-lg font-display font-bold text-foreground mb-3
                              group-hover:text-primary transition-colors">
                   {item.title}
                 </h3>
@@ -66,12 +68,20 @@ const NewsSection = ({ newsItems }: NewsSectionProps) => {
                 
                 {/* Read More Link */}
                 <motion.button
-                  className="mt-4 text-primary font-semibold flex items-center gap-2 
+                  className="mt-4 text-primary font-semibold flex items-center gap-2
                            hover:text-trojan-green-dark transition-colors"
                   whileHover={{ x: 5 }}
+                  onClick={() => {
+                    if (item.link) {
+                      window.open(item.link, "_blank", "noopener,noreferrer");
+                    } else {
+                      toast.info("Full article coming soon!");
+                    }
+                  }}
+                  aria-label={`Read more about ${item.title}`}
                 >
                   Read More
-                  <span>→</span>
+                  <span aria-hidden="true">→</span>
                 </motion.button>
               </div>
             </motion.div>
