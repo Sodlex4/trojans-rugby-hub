@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, X, LogOut, Plus, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
+import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -45,7 +46,7 @@ const Header = ({
           >
             <img src={heroSlide5} alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
             <div className="text-primary-foreground">
-              <h1 className="text-3xl md:text-4xl font-display tracking-wider">TROJANS</h1>
+              <h1 className="text-2xl md:text-3xl font-display font-extrabold uppercase">TROJANS</h1>
               <p className="text-sm tracking-[0.3em] opacity-90">MURANG'A</p>
             </div>
           </motion.div>
@@ -65,11 +66,12 @@ const Header = ({
               </motion.button>
             ))}
 
+            <ThemeToggle />
+
             {!isLoggedIn ? (
               <motion.button
                 onClick={onLogin}
-                className="bg-accent text-accent-foreground px-6 py-2 rounded-full font-bold
-                         hover:bg-trojan-red-dark transition-all duration-300 shadow-button"
+                className="btn-accent"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.5 }}
@@ -79,13 +81,12 @@ const Header = ({
                 JOIN US
               </motion.button>
             ) : (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {isAdmin && (
                   <>
                     <motion.button
                       onClick={onOpenDashboard}
-                      className="bg-primary-foreground/20 text-primary-foreground px-4 py-2 rounded-full font-bold
-                               hover:bg-primary-foreground/30 transition-all duration-300 flex items-center gap-2"
+                      className="btn-secondary flex items-center gap-2"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -94,8 +95,7 @@ const Header = ({
                     </motion.button>
                     <motion.button
                       onClick={onAddPlayer}
-                      className="bg-trojan-gold text-foreground px-4 py-2 rounded-full font-bold
-                               hover:opacity-90 transition-all duration-300 flex items-center gap-2"
+                      className="btn-gold flex items-center gap-2"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
@@ -106,8 +106,7 @@ const Header = ({
                 )}
                 <motion.button
                   onClick={onLogout}
-                  className="bg-accent text-accent-foreground px-4 py-2 rounded-full font-bold
-                           hover:bg-trojan-red-dark transition-all duration-300 flex items-center gap-2"
+                  className="btn-accent flex items-center gap-2"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -122,6 +121,8 @@ const Header = ({
           <button
             className="md:hidden text-primary-foreground p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
@@ -147,30 +148,54 @@ const Header = ({
                   {item}
                 </button>
               ))}
+
+              <div className="flex items-center gap-4 pt-2 border-t border-primary-foreground/20">
+                <ThemeToggle />
+                <span className="text-primary-foreground/70 text-sm">Toggle theme</span>
+              </div>
+
               {!isLoggedIn ? (
                 <button
-                  onClick={onLogin}
-                  className="bg-accent text-accent-foreground px-6 py-2 rounded-full font-bold
-                           hover:bg-trojan-red-dark transition-all duration-300 w-fit"
+                  onClick={() => {
+                    onLogin();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="btn-accent w-fit"
                 >
                   JOIN US
                 </button>
               ) : (
                 <div className="flex flex-col gap-2">
                   {isAdmin && (
-                    <button
-                      onClick={onOpenDashboard}
-                      className="bg-primary-foreground/20 text-primary-foreground px-6 py-2 rounded-full font-bold
-                               hover:bg-primary-foreground/30 transition-all duration-300 flex items-center gap-2 w-fit"
-                    >
-                      <LayoutDashboard size={16} />
-                      Dashboard
-                    </button>
+                    <>
+                      <button
+                        onClick={() => {
+                          onOpenDashboard();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="btn-secondary flex items-center gap-2 w-fit"
+                      >
+                        <LayoutDashboard size={16} />
+                        Dashboard
+                      </button>
+                      <button
+                        onClick={() => {
+                          onAddPlayer();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="btn-gold flex items-center gap-2 w-fit"
+                      >
+                        <Plus size={16} />
+                        Add Player
+                      </button>
+                    </>
                   )}
                   <button
-                    onClick={onLogout}
-                    className="bg-accent text-accent-foreground px-6 py-2 rounded-full font-bold
-                             hover:bg-trojan-red-dark transition-all duration-300 flex items-center gap-2 w-fit"
+                    onClick={() => {
+                      onLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="btn-accent flex items-center gap-2 w-fit"
                   >
                     <LogOut size={16} />
                     Logout

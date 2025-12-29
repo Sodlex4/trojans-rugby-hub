@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
 import PlayerModal from "@/components/PlayerModal";
 import AdminDashboard from "@/components/AdminDashboard";
+import ScrollToTop from "@/components/ScrollToTop";
 
 // Import hero images
 import heroSlide1 from "@/assets/hero-slide-1.jpg";
@@ -421,6 +422,8 @@ const Index = () => {
       <ContactSection />
 
       <Footer />
+
+      <ScrollToTop />
 
       <AuthModal
         isOpen={showAuthModal}

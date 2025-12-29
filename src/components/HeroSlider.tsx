@@ -29,7 +29,7 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section id="home" className="relative w-full h-screen mt-20 overflow-hidden">
+    <section id="home" className="relative w-full h-screen overflow-hidden">
       <AnimatePresence mode="wait">
         {slides.map(
           (slide, index) =>
@@ -46,27 +46,24 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="absolute inset-0 w-full h-full object-contain object-center"
+                  className="absolute inset-0 w-full h-full object-cover object-top"
                 />
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-hero-gradient" />
-                
-                {/* Decorative Elements */}
-                <div className="absolute top-1/4 left-10 w-32 h-20 bg-green-600 rounded-full animate-float border-2 border-white/30 shadow-lg" style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }} />
-                <div className="absolute bottom-1/4 right-20 w-20 h-20 border-2 border-accent/30 rounded-full animate-float" style={{ animationDelay: "1s" }} />
+
+                {/* Gradient Overlay - Enhanced for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
 
                 {/* Content */}
-                <div className="relative h-full flex items-center">
+                <div className="relative h-full flex items-center pt-20">
                   <div className="container mx-auto px-6">
                     <motion.div
-                      className="max-w-2xl ml-auto text-right"
-                      initial={{ opacity: 0, x: 50 }}
+                      className="max-w-2xl"
+                      initial={{ opacity: 0, x: -50 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.8, delay: 0.3 }}
                     >
                       <motion.h2
-                        className="text-primary-foreground text-5xl md:text-6xl lg:text-7xl font-display mb-6 leading-tight tracking-wide"
+                        className="text-primary-foreground text-4xl md:text-5xl lg:text-6xl font-display font-extrabold mb-6 leading-tight uppercase"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
@@ -105,26 +102,28 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10 
-                   bg-primary-foreground/10 hover:bg-primary-foreground/20 
+        className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-10
+                   bg-primary-foreground/10 hover:bg-primary-foreground/20
                    text-primary-foreground p-3 md:p-4 rounded-full transition-all duration-300
                    backdrop-blur-sm border border-primary-foreground/20"
+        aria-label="Previous slide"
       >
-        <ChevronLeft size={28} />
+        <ChevronLeft size={28} aria-hidden="true" />
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10 
-                   bg-primary-foreground/10 hover:bg-primary-foreground/20 
+        className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-10
+                   bg-primary-foreground/10 hover:bg-primary-foreground/20
                    text-primary-foreground p-3 md:p-4 rounded-full transition-all duration-300
                    backdrop-blur-sm border border-primary-foreground/20"
+        aria-label="Next slide"
       >
-        <ChevronRight size={28} />
+        <ChevronRight size={28} aria-hidden="true" />
       </button>
 
       {/* Slide Indicators */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
-        {slides.map((_, index) => (
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3" role="tablist">
+        {slides.map((slide, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
@@ -133,6 +132,9 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 ? "bg-accent w-8"
                 : "bg-primary-foreground/50 hover:bg-primary-foreground/70"
             }`}
+            role="tab"
+            aria-selected={index === currentSlide}
+            aria-label={`Go to slide ${index + 1}: ${slide.title}`}
           />
         ))}
       </div>

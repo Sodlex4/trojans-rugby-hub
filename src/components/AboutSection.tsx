@@ -10,7 +10,7 @@ const stats = [
 
 const AboutSection = () => {
   return (
-    <section id="about" className="py-20 md:py-28 bg-secondary">
+    <section id="about" className="py-20 md:py-28 bg-secondary scroll-mt-20">
       <div className="container mx-auto px-6">
         {/* Section Title */}
         <motion.div
@@ -27,30 +27,21 @@ const AboutSection = () => {
         <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Image */}
           <motion.div
-            className="relative"
+            className="relative p-4"
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
+            {/* Decorative background element */}
+            <div className="absolute bottom-0 right-0 w-3/4 h-3/4 bg-accent/20 rounded-2xl" />
             <div className="relative rounded-2xl overflow-hidden shadow-card">
               <img
                 src={heroSlide2}
                 alt="Rugby team celebration"
                 className="w-full h-auto object-cover"
               />
-              {/* Overlay decoration */}
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-accent rounded-xl -z-10" />
             </div>
-            {/* Floating badge */}
-            <motion.div
-              className="absolute -top-6 -right-6 bg-primary text-primary-foreground 
-                         p-4 rounded-xl shadow-glow"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              <Trophy size={32} />
-            </motion.div>
           </motion.div>
 
           {/* Content */}
@@ -60,7 +51,7 @@ const AboutSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            <h3 className="text-3xl md:text-4xl font-display text-foreground mb-6 tracking-wide">
+            <h3 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-6 uppercase">
               WELCOME TO TROJANS MURANG'A RUGBY CLUB
             </h3>
             <p className="text-muted-foreground mb-6 leading-relaxed text-lg">
@@ -87,7 +78,7 @@ const AboutSection = () => {
                   whileHover={{ scale: 1.05 }}
                 >
                   <stat.icon className="mx-auto text-primary mb-2" size={36} />
-                  <p className="text-3xl font-display text-foreground">{stat.value}</p>
+                  <p className="text-3xl font-display font-bold text-foreground">{stat.value}</p>
                   <p className="text-muted-foreground text-sm">{stat.label}</p>
                 </motion.div>
               ))}
