@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_NAME=trojans
+      - DB_USER=trojans
+      - DB_PASSWORD=trojans123
+      - JWT_SECRET=trojans-super-secret-key-change-in-production-very-long-key-required
+      - CORS_ORIGINS=http://localhost:5173,https://trojans-rugby-hub.vercel.app
+    depends_on:
+      - mariadb
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+
+  mariadb:
+    image: mariadb:10.11
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=trojans
+      - MYSQL_USER=trojans
+      - MYSQL_PASSWORD=trojans123
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:

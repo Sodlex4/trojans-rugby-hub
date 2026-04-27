@@ -6,40 +6,38 @@ Spring Boot REST API for the Trojans Rugby Hub website.
 
 - Java 17+
 - Spring Boot 3.2
-- MariaDB
+- MariaDB (or SQLite for local dev)
 - JWT Authentication
 - Spring Security
 
-## Quick Start
+## Quick Start (Local Development)
 
-### Prerequisites
-
-- Java 17+
-- Maven 3.8+
-- MariaDB 10.6+
-
-### Build & Run
+### With Docker
 
 ```bash
-# Build
-mvn clean package -DskipTests
+docker-compose up -d --build
+```
+
+The API will be available at `http://localhost:8080`
+
+### Without Docker
+
+```bash
+# Install Maven first
+./mvnw clean package -DskipTests
 
 # Run
 java -jar target/trojans-backend-1.0.0.jar
 ```
 
-Or with Maven:
-
-```bash
-mvn spring-boot:run
-```
+Note: Uses SQLite by default when running without Docker.
 
 ## Configuration
 
-Set environment variables or edit `src/main/resources/application.properties`:
+Set environment variables:
 
 ```properties
-# Database
+# Database (MariaDB)
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=trojans
@@ -73,30 +71,43 @@ CORS_ORIGINS=http://localhost:5173,https://your-domain.vercel.app
 | POST | `/api/images/upload` | Upload image | Public |
 | GET | `/api/images/{filename}` | Get image | Public |
 
-## Deployment
+## Deployment Options
 
-### Railway (Recommended)
+### Option 1: Railway (Recommended)
 
-1. Create new project on Railway
-2. Add MariaDB plugin
-3. Deploy with Railway CLI:
+1. Create account at https://railway.app
+2. Create new project → "New GitHub Repo"
+3. Add MariaDB plugin to project
+4. Set environment variables:
+   - `DB_HOST` = the MariaDB hostname from Railway
+   - `DB_PASSWORD` = your MariaDB password
+   - `JWT_SECRET` = create a secure random string
+   - `CORS_ORIGINS` = your Vercel frontend URL
 
 ```bash
 railway init
 railway deploy
 ```
 
-Environment variables on Railway:
-- `DB_HOST` - Database host
-- `DB_PASSWORD` - Database password
-- `JWT_SECRET` - Your secret key
-- `CORS_ORIGINS` - Your Vercel domain
+### Option 2: Render
 
-### Render
+1. Create account at https://render.com
+2. Create new Web Service
+3. Connect to GitHub repository
+4. Set environment variables
+5. Build command: `./mvnw clean package -DskipTests`
+6. Start command: `java -jar target/trojans-backend-1.0.0.jar`
 
-1. Create new Web Service
-2. Connect to repository
-3. Set environment variables
+### Option 3: Docker on any VPS
+
+```bash
+docker build -t trojans-backend .
+docker run -d -p 8080:8080 \
+  -e DB_HOST=your-db-host \
+  -e DB_PASSWORD=your-password \
+  -e JWT_SECRET=your-secret \
+  trojans-backend
+```
 
 ---
 
