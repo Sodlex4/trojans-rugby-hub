@@ -46,7 +46,7 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className="absolute inset-0 w-full h-full object-cover object-top"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
                 />
 
                 {/* Gradient Overlay - Enhanced for better text readability */}
