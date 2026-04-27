@@ -243,7 +243,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-72 object-cover object-top transition-transform duration-500
+                    className="w-full h-72 object-cover object-center transition-transform duration-500
                              group-hover:scale-105"
                   />
                   
