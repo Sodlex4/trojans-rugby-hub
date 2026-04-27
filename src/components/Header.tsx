@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, Plus, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
@@ -10,7 +11,6 @@ interface HeaderProps {
   onLogin: () => void;
   onLogout: () => void;
   onAddPlayer: () => void;
-  onOpenDashboard: () => void;
   scrollToSection: (section: string) => void;
 }
 
@@ -20,9 +20,9 @@ const Header = ({
   onLogin,
   onLogout,
   onAddPlayer,
-  onOpenDashboard,
   scrollToSection,
 }: HeaderProps) => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = ["home", "about", "team", "news", "contact"];
@@ -85,7 +85,7 @@ const Header = ({
                 {isAdmin && (
                   <>
                     <motion.button
-                      onClick={onOpenDashboard}
+                      onClick={() => navigate("/admin")}
                       className="btn-secondary flex items-center gap-2"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -170,7 +170,7 @@ const Header = ({
                     <>
                       <button
                         onClick={() => {
-                          onOpenDashboard();
+                          navigate("/admin");
                           setMobileMenuOpen(false);
                         }}
                         className="btn-secondary flex items-center gap-2 w-fit"
