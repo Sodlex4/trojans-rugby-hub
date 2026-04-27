@@ -87,7 +87,6 @@ const Index = () => {
           setShowAuthModal(true);
         }}
         onLogout={handleLogout}
-        onAddPlayer={handleAddPlayer}
         scrollToSection={scrollToSection}
       />
 

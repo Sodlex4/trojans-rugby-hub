@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, Plus, LayoutDashboard } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
 import ThemeToggle from "./ThemeToggle";
@@ -10,7 +10,6 @@ interface HeaderProps {
   isAdmin: boolean;
   onLogin: () => void;
   onLogout: () => void;
-  onAddPlayer: () => void;
   scrollToSection: (section: string) => void;
 }
 
@@ -19,7 +18,6 @@ const Header = ({
   isAdmin,
   onLogin,
   onLogout,
-  onAddPlayer,
   scrollToSection,
 }: HeaderProps) => {
   const navigate = useNavigate();
@@ -68,52 +66,27 @@ const Header = ({
 
             <ThemeToggle />
 
-            {!isLoggedIn ? (
+            {isAdmin && (
               <motion.button
-                onClick={onLogin}
-                className="btn-accent"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
+                onClick={() => navigate("/admin")}
+                className="btn-secondary flex items-center gap-2"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                JOIN US
+                <LayoutDashboard size={16} />
+                Dashboard
               </motion.button>
-            ) : (
-              <div className="flex items-center gap-3">
-                {isAdmin && (
-                  <>
-                    <motion.button
-                      onClick={() => navigate("/admin")}
-                      className="btn-secondary flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <LayoutDashboard size={16} />
-                      Dashboard
-                    </motion.button>
-                    <motion.button
-                      onClick={onAddPlayer}
-                      className="btn-gold flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Plus size={16} />
-                      Add Player
-                    </motion.button>
-                  </>
-                )}
-                <motion.button
-                  onClick={onLogout}
-                  className="btn-accent flex items-center gap-2"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <LogOut size={16} />
-                  Logout
-                </motion.button>
-              </div>
+            )}
+            {isLoggedIn && (
+              <motion.button
+                onClick={onLogout}
+                className="btn-accent flex items-center gap-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogOut size={16} />
+                Logout
+              </motion.button>
             )}
           </nav>
 
@@ -167,28 +140,16 @@ const Header = ({
               ) : (
                 <div className="flex flex-col gap-2">
                   {isAdmin && (
-                    <>
-                      <button
-                        onClick={() => {
-                          navigate("/admin");
-                          setMobileMenuOpen(false);
-                        }}
-                        className="btn-secondary flex items-center gap-2 w-fit"
-                      >
-                        <LayoutDashboard size={16} />
-                        Dashboard
-                      </button>
-                      <button
-                        onClick={() => {
-                          onAddPlayer();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="btn-gold flex items-center gap-2 w-fit"
-                      >
-                        <Plus size={16} />
-                        Add Player
-                      </button>
-                    </>
+                    <button
+                      onClick={() => {
+                        navigate("/admin");
+                        setMobileMenuOpen(false);
+                      }}
+                      className="btn-secondary flex items-center gap-2 w-fit"
+                    >
+                      <LayoutDashboard size={16} />
+                      Dashboard
+                    </button>
                   )}
                   <button
                     onClick={() => {
