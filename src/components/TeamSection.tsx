@@ -224,7 +224,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
 
         {/* Team Grid */}
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
           layout
         >
           <AnimatePresence mode="popLayout">
@@ -243,7 +243,7 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-72 object-cover object-center transition-transform duration-500
+                    className="w-full h-72 md:h-80 object-cover object-center transition-transform duration-500
                              group-hover:scale-105"
                   />
                   

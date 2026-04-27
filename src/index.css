@@ -140,9 +140,9 @@
     @apply w-24 h-1.5 bg-accent mx-auto mt-4;
   }
 
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
-  }
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+}
 
   .btn-hero {
     @apply bg-accent text-accent-foreground px-10 py-4 rounded-full text-lg font-display font-bold uppercase
