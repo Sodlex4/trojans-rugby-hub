@@ -88,7 +88,6 @@ const Index = () => {
         }}
         onLogout={handleLogout}
         onAddPlayer={handleAddPlayer}
-        onOpenDashboard={handleOpenDashboard}
         scrollToSection={scrollToSection}
       />
 
