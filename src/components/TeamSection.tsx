@@ -1,15 +1,7 @@
 import { useState, useMemo } from "react";
 import { Edit2, Trash2, Search, X, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface TeamMember {
-  id: number;
-  name: string;
-  position: string;
-  number: string;
-  image: string;
-  category: string;
-}
+import { primaryFilters, positionSuggestions, type TeamMember } from "@/data/team";
 
 interface TeamSectionProps {
   teamMembers: TeamMember[];
@@ -17,8 +9,6 @@ interface TeamSectionProps {
   onEditPlayer: (player: TeamMember) => void;
   onDeletePlayer: (id: number) => void;
 }
-
-const primaryFilters = ["All", "Forwards", "Backs", "Staff"];
 
 const specificPositions = [
   "Prop",
@@ -31,22 +21,6 @@ const specificPositions = [
   "Centre",
   "Wing",
   "Full-Back",
-];
-
-const positionSuggestions = [
-  "Hooker",
-  "Flanker",
-  "Prop",
-  "Lock",
-  "Number 8",
-  "Scrum-Half",
-  "Fly-Half",
-  "Centre",
-  "Wing",
-  "Full-Back",
-  "Head Coach",
-  "Manager",
-  "Physio",
 ];
 
 const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: TeamSectionProps) => {
