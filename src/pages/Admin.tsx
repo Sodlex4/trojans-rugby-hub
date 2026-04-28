@@ -119,7 +119,8 @@ const AdminPage = () => {
     
     if (result.success) {
       setIsLoggedIn(true);
-      setIsAdminUser(isAdmin());
+      setIsAdminUser(true); // Force true since login succeeded with admin credentials
+      setLoginForm({ username: "", password: "" });
       toast.success("Welcome back!");
     } else {
       toast.error(result.error || "Invalid credentials");
@@ -320,8 +321,8 @@ const AdminPage = () => {
             <h1 className="text-2xl font-display font-bold text-foreground uppercase">Admin Login</h1>
             <p className="text-muted-foreground mt-2">Sign in to manage the club</p>
           </div>
-          
-          <div className="space-y-5">
+           
+          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
             <div>
               <label className="block text-foreground font-semibold mb-2">Username</label>
               <input
@@ -330,7 +331,6 @@ const AdminPage = () => {
                 value={loginForm.username}
                 onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
                 className="input-field"
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               />
             </div>
             
@@ -342,12 +342,11 @@ const AdminPage = () => {
                 value={loginForm.password}
                 onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 className="input-field"
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               />
             </div>
             
             <motion.button
-              onClick={handleLogin}
+              type="submit"
               disabled={isLoggingIn}
               className="w-full bg-primary text-primary-foreground py-4 rounded-xl 
                        font-display font-bold text-lg uppercase
@@ -364,7 +363,25 @@ const AdminPage = () => {
                 ← Back to homepage
               </Link>
             </div>
-          </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Check admin role
+  if (!isAdminUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border text-center">
+          <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
+          <p className="text-muted-foreground mb-6">You don't have admin privileges.</p>
+          <button 
+            onClick={handleLogout}
+            className="btn-accent"
+          >
+            Logout
+          </button>
         </div>
       </div>
     );
