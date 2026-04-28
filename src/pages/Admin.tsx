@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, Edit2, Trash2, Users, Newspaper, Settings, 
-  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle
+  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -10,8 +10,10 @@ import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team"
 import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
 import { 
   login, logout, isAuthenticated, isAdmin,
-  getAllJoinRequests, acceptJoinRequest, declineJoinRequest 
+  getAllJoinRequests, acceptJoinRequest, declineJoinRequest,
+  getSettings, saveSettings
 } from "@/lib/auth";
+import heroSlide5 from "@/assets/hero-slide-5.jpg";
 
 const positions = [
   "Prop", "Hooker", "Lock", "Flanker", "Number 8",
@@ -57,6 +59,9 @@ const AdminPage = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
 
+  // Settings state
+  const [settings, setSettings] = useState(getSettings());
+
   const handleLogin = async () => {
     if (!loginForm.username || !loginForm.password) {
       toast.error("Please enter username and password");
@@ -81,6 +86,11 @@ const AdminPage = () => {
     setIsLoggedIn(false);
     setIsAdminUser(false);
     setLoginForm({ username: "", password: "" });
+  };
+
+  const handleSaveSettings = () => {
+    saveSettings(settings);
+    toast.success("Settings saved successfully!");
   };
 
   // Fetch join requests on mount and when tab changes
@@ -229,7 +239,11 @@ const AdminPage = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border">
           <div className="text-center mb-8">
-            <LayoutDashboard className="w-16 h-16 text-primary mx-auto mb-4" />
+            <img 
+              src={heroSlide5} 
+              alt="Trojans Logo" 
+              className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg" 
+            />
             <h1 className="text-2xl font-display font-bold text-foreground uppercase">Admin Login</h1>
             <p className="text-muted-foreground mt-2">Sign in to manage the club</p>
           </div>
@@ -829,18 +843,204 @@ const AdminPage = () => {
         {/* Settings Tab */}
         {activeTab === "settings" && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Settings</h2>
-            <div className="bg-card rounded-xl p-6 border border-border">
-              <div className="flex items-center gap-4 mb-4">
-                <Settings className="text-muted-foreground" size={32} />
-                <div>
-                  <h3 className="font-semibold text-foreground">Site Settings</h3>
-                  <p className="text-sm text-muted-foreground">Configure your site preferences</p>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Settings</h2>
+              <button
+                onClick={handleSaveSettings}
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
+              >
+                <Save size={18} />
+                Save Settings
+              </button>
+            </div>
+
+            <div className="grid gap-6">
+              {/* Site Info */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Globe className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Site Information</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Site Title</label>
+                    <input
+                      type="text"
+                      value={settings.siteTitle}
+                      onChange={(e) => setSettings({ ...settings, siteTitle: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Tagline</label>
+                    <input
+                      type="text"
+                      value={settings.siteTagline}
+                      onChange={(e) => setSettings({ ...settings, siteTagline: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-foreground mb-1">Description</label>
+                    <textarea
+                      value={settings.siteDescription}
+                      onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
+                      className="input-field h-24 resize-none"
+                    />
+                  </div>
                 </div>
               </div>
-              <p className="text-muted-foreground">
-                Settings panel coming soon. This will include site configuration options like site title, description, social links, and more.
-              </p>
+
+              {/* Contact Info */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Phone className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Contact Information</h3>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={settings.contactEmail}
+                      onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Phone</label>
+                    <input
+                      type="tel"
+                      value={settings.contactPhone}
+                      onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Address</label>
+                    <input
+                      type="text"
+                      value={settings.contactAddress}
+                      onChange={(e) => setSettings({ ...settings, contactAddress: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Globe className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Social Media Links</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <Facebook className="text-blue-600" size={20} />
+                    <input
+                      type="url"
+                      placeholder="Facebook URL"
+                      value={settings.socialFacebook}
+                      onChange={(e) => setSettings({ ...settings, socialFacebook: e.target.value })}
+                      className="input-field flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Twitter className="text-blue-400" size={20} />
+                    <input
+                      type="url"
+                      placeholder="Twitter URL"
+                      value={settings.socialTwitter}
+                      onChange={(e) => setSettings({ ...settings, socialTwitter: e.target.value })}
+                      className="input-field flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Instagram className="text-pink-600" size={20} />
+                    <input
+                      type="url"
+                      placeholder="Instagram URL"
+                      value={settings.socialInstagram}
+                      onChange={(e) => setSettings({ ...settings, socialInstagram: e.target.value })}
+                      className="input-field flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Youtube className="text-red-600" size={20} />
+                    <input
+                      type="url"
+                      placeholder="YouTube URL"
+                      value={settings.socialYouTube}
+                      onChange={(e) => setSettings({ ...settings, socialYouTube: e.target.value })}
+                      className="input-field flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Club Info */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Heart className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Club Information</h3>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Founded Year</label>
+                    <input
+                      type="text"
+                      value={settings.clubFounded}
+                      onChange={(e) => setSettings({ ...settings, clubFounded: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Stadium Name</label>
+                    <input
+                      type="text"
+                      value={settings.clubStadium}
+                      onChange={(e) => setSettings({ ...settings, clubStadium: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Join Request Settings */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <UserPlus className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Join Request Settings</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-foreground">Auto-accept requests</p>
+                      <p className="text-sm text-muted-foreground">Automatically accept all join requests</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({ ...settings, joinAutoAccept: !settings.joinAutoAccept })}
+                      className={`w-14 h-7 rounded-full transition-colors ${
+                        settings.joinAutoAccept ? "bg-primary" : "bg-muted"
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
+                        settings.joinAutoAccept ? "translate-x-8" : "translate-x-1"
+                      }`} />
+                    </button>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Notification Email</label>
+                    <input
+                      type="email"
+                      placeholder="Email for join request notifications"
+                      value={settings.notifyEmail}
+                      onChange={(e) => setSettings({ ...settings, notifyEmail: e.target.value })}
+                      className="input-field"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
