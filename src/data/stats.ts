@@ -147,14 +147,20 @@ export const playerStats: PlayerStats[] = [
 ];
 
 export const leagueTable = [
-  { position: 1, team: "Kisumu RFC", played: 10, won: 9, drawn: 0, lost: 1, points: 45 },
-  { position: 2, team: "Trojans RFC", played: 10, won: 8, drawn: 1, lost: 1, points: 41 },
-  { position: 3, team: "Nairobi Harlequins", played: 10, won: 7, drawn: 1, lost: 2, points: 36 },
-  { position: 4, team: "Mombasa RFC", played: 10, won: 6, drawn: 0, lost: 4, points: 28 },
-  { position: 5, team: "Nakuru RFC", played: 10, won: 5, drawn: 1, lost: 4, points: 26 },
-  { position: 6, team: "Western Suburbs", played: 10, won: 4, drawn: 0, lost: 6, points: 18 },
-  { position: 7, team: "Kenyatta University", played: 10, won: 2, drawn: 1, lost: 7, points: 11 },
-  { position: 8, team: "Strathmore", played: 10, won: 0, drawn: 0, lost: 10, points: 2 },
+  { position: 1, team: "Kenya Prisons", played: 12, won: 12, drawn: 0, lost: 0, pointsFor: 510, pointsAgainst: 29, pointsDifference: 481, bonusPoints: 11, totalPoints: 59 },
+  { position: 2, team: "Embu RFC", played: 12, won: 9, drawn: 1, lost: 2, pointsFor: 327, pointsAgainst: 149, pointsDifference: 178, bonusPoints: 6, totalPoints: 44 },
+  { position: 3, team: "Chuka Vikings", played: 11, won: 8, drawn: 1, lost: 2, pointsFor: 296, pointsAgainst: 89, pointsDifference: 207, bonusPoints: 7, totalPoints: 41 },
+  { position: 4, team: "Meru University", played: 12, won: 9, drawn: 0, lost: 3, pointsFor: 268, pointsAgainst: 97, pointsDifference: 171, bonusPoints: 3, totalPoints: 39 },
+  { position: 5, team: "MKU Thika", played: 12, won: 7, drawn: 0, lost: 5, pointsFor: 250, pointsAgainst: 147, pointsDifference: 103, bonusPoints: 7, totalPoints: 35 },
+  { position: 6, team: "Meru RFC", played: 12, won: 8, drawn: 0, lost: 4, pointsFor: 203, pointsAgainst: 156, pointsDifference: 47, bonusPoints: 2, totalPoints: 34 },
+  { position: 7, team: "Tharaka University", played: 11, won: 5, drawn: 0, lost: 6, pointsFor: 169, pointsAgainst: 168, pointsDifference: 1, bonusPoints: 2, totalPoints: 22 },
+  { position: 8, team: "Olive Rugby", played: 12, won: 5, drawn: 0, lost: 7, pointsFor: 272, pointsAgainst: 259, pointsDifference: 13, bonusPoints: -4, totalPoints: 16 },
+  { position: 9, team: "Kirinyaga RFC", played: 12, won: 3, drawn: 0, lost: 9, pointsFor: 104, pointsAgainst: 316, pointsDifference: -212, bonusPoints: 1, totalPoints: 13 },
+  { position: 10, team: "Dedan Kimathi Uni.", played: 11, lost: 0 },
+  { position: 11, team: "Karatina University", lost: 0 },
+  { position: 12, team: "Murang'a Trojans", played: 12, won: 2, lost: 10, pointsFor: 133, pointsAgainst: 299, pointsDifference: -166, bonusPoints: -7, totalPoints: 1 },
+  { position: 13, team: "Kiambu Rugby", played: 12, won: 2, lost: 10, pointsFor: 90, pointsAgainst: 242, pointsDifference: -152, bonusPoints: -4, totalPoints: 4 },
+  { position: 14, team: "Kisumu RFC", played: 12, won: 1, lost: 11, pointsFor: 35, pointsAgainst: 598, pointsDifference: -563, bonusPoints: -11, totalPoints: -7 },
 ];
 
 export const getTopScorers = () => 

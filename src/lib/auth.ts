@@ -245,13 +245,13 @@ interface Match {
 }
 
 const defaultMatches: Match[] = [
-  { id: 1, date: "May 10, 2026", time: "3:00 PM", opponent: "Kisumu RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Kenya Cup", status: "scheduled", isHome: true },
-  { id: 2, date: "May 17, 2026", time: "4:00 PM", opponent: "Nairobi Harlequins", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Nairobi Safari Park", competition: "Kenya Cup", status: "scheduled", isHome: false },
-  { id: 3, date: "May 24, 2026", time: "3:00 PM", opponent: "Mombasa RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Kenya Cup", status: "scheduled", isHome: true },
-  { id: 4, date: "May 31, 2026", time: "2:30 PM", opponent: "Nakuru RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Nakuru Athletics Club", competition: "Kenya Cup", status: "scheduled", isHome: false },
-  { id: 5, date: "April 12, 2026", time: "3:00 PM", opponent: "Kenyatta University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Fifteen Cup", result: "W", trojansScore: 24, opponentScore: 12, status: "completed", isHome: true },
-  { id: 6, date: "April 5, 2026", time: "4:00 PM", opponent: "Strathmore", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Strathmore Ground", competition: "Fifteen Cup", result: "W", trojansScore: 18, opponentScore: 15, status: "completed", isHome: false },
-  { id: 7, date: "March 29, 2026", time: "3:00 PM", opponent: "Western Suburbs", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Fifteen Cup", result: "W", trojansScore: 32, opponentScore: 8, status: "completed", isHome: true },
+  { id: 1, date: "May 10, 2026", time: "3:00 PM", opponent: "Kenya Prisons", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", status: "scheduled", isHome: true },
+  { id: 2, date: "May 17, 2026", time: "4:00 PM", opponent: "Embu RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Embu Stadium", competition: "Central Kenya Rugby", status: "scheduled", isHome: false },
+  { id: 3, date: "May 24, 2026", time: "3:00 PM", opponent: "Chuka Vikings", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", status: "scheduled", isHome: true },
+  { id: 4, date: "May 31, 2026", time: "2:30 PM", opponent: "Meru University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Meru University Ground", competition: "Central Kenya Rugby", status: "scheduled", isHome: false },
+  { id: 5, date: "April 12, 2026", time: "3:00 PM", opponent: "MKU Thika", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", result: "W", trojansScore: 24, opponentScore: 12, status: "completed", isHome: true },
+  { id: 6, date: "April 5, 2026", time: "4:00 PM", opponent: "Meru RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Meru Stadium", competition: "Central Kenya Rugby", result: "W", trojansScore: 18, opponentScore: 15, status: "completed", isHome: false },
+  { id: 7, date: "March 29, 2026", time: "3:00 PM", opponent: "Tharaka University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", result: "W", trojansScore: 32, opponentScore: 8, status: "completed", isHome: true },
 ];
 
 export const getMatches = (): Match[] => {
