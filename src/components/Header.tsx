@@ -41,7 +41,7 @@ const Header = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <img src="/favicon.ico" alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
+            <img src="/logo.jpg" alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
             <div className="text-primary-foreground">
               <h1 className="text-2xl md:text-3xl font-display font-extrabold uppercase">TROJANS</h1>
               <p className="text-sm tracking-[0.3em] opacity-90">MURANG'A</p>

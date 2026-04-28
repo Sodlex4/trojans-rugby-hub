@@ -15,7 +15,6 @@ import {
   getMatches, saveMatches, addMatch, updateMatch, deleteMatch,
   getPlayerStats, savePlayerStats, addPlayerStat, updatePlayerStat, deletePlayerStat, type PlayerStat
 } from "@/lib/auth";
-import heroSlide5 from "@/assets/hero-slide-5.jpg";
 
 const positions = [
   "Prop", "Hooker", "Lock", "Flanker", "Number 8",
@@ -280,7 +279,7 @@ const AdminPage = () => {
         <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border">
           <div className="text-center mb-8">
             <img 
-              src={heroSlide5} 
+              src="/logo.jpg" 
               alt="Trojans Logo" 
               className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg" 
             />
