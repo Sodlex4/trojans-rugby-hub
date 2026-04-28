@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, Edit2, Trash2, Users, Newspaper, Settings, 
-  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar
+  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team";
 import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
+import { login, logout, getStoredAuth, isAuthenticated, isAdmin, getAuthHeaders } from "@/lib/auth";
 
 const positions = [
   "Prop", "Hooker", "Lock", "Flanker", "Number 8",
@@ -29,6 +30,11 @@ interface JoinRequest {
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
+  const [isAdminUser, setIsAdminUser] = useState(isAdmin());
+  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(initialNewsItems);
   const [activeTab, setActiveTab] = useState<"dashboard" | "players" | "news" | "joinRequests" | "settings">("dashboard");
@@ -38,11 +44,43 @@ const AdminPage = () => {
   const [showNewsForm, setShowNewsForm] = useState(false);
   const [playerSearchQuery, setPlayerSearchQuery] = useState("");
   const [newsSearchQuery, setNewsSearchQuery] = useState("");
+
+  // Check auth on mount
+  useEffect(() => {
+    setIsLoggedIn(isAuthenticated());
+    setIsAdminUser(isAdmin());
+  }, []);
   
   // Join Requests state
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+
+  const handleLogin = async () => {
+    if (!loginForm.username || !loginForm.password) {
+      toast.error("Please enter username and password");
+      return;
+    }
+    
+    setIsLoggingIn(true);
+    const success = await login(loginForm.username, loginForm.password);
+    setIsLoggingIn(false);
+    
+    if (success) {
+      setIsLoggedIn(true);
+      setIsAdminUser(isAdmin());
+      toast.success("Welcome back!");
+    } else {
+      toast.error("Invalid credentials");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setIsAdminUser(false);
+    setLoginForm({ username: "", password: "" });
+  };
 
   // Fetch join requests on mount and when tab changes
   useEffect(() => {
@@ -190,10 +228,6 @@ const AdminPage = () => {
     }
   };
 
-  const handleLogout = () => {
-    navigate("/");
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-GB", { 
@@ -204,6 +238,66 @@ const AdminPage = () => {
       minute: "2-digit"
     });
   };
+
+  // Show login form if not authenticated
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border">
+          <div className="text-center mb-8">
+            <LayoutDashboard className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h1 className="text-2xl font-display font-bold text-foreground uppercase">Admin Login</h1>
+            <p className="text-muted-foreground mt-2">Sign in to manage the club</p>
+          </div>
+          
+          <div className="space-y-5">
+            <div>
+              <label className="block text-foreground font-semibold mb-2">Username</label>
+              <input
+                type="text"
+                placeholder="Enter your username"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                className="input-field"
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-foreground font-semibold mb-2">Password</label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                className="input-field"
+                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+              />
+            </div>
+            
+            <motion.button
+              onClick={handleLogin}
+              disabled={isLoggingIn}
+              className="w-full bg-primary text-primary-foreground py-4 rounded-xl 
+                       font-display font-bold text-lg uppercase
+                       hover:bg-trojan-green-dark transition-all duration-300
+                       disabled:opacity-50"
+              whileHover={{ scale: isLoggingIn ? 1 : 1.02 }}
+              whileTap={{ scale: isLoggingIn ? 1 : 0.98 }}
+            >
+              {isLoggingIn ? "Signing in..." : "LOGIN"}
+            </motion.button>
+            
+            <div className="text-center pt-4">
+              <Link to="/" className="text-primary hover:underline text-sm">
+                ← Back to homepage
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

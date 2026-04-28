@@ -6,10 +6,10 @@ import heroSlide5 from "@/assets/hero-slide-5.jpg";
 import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
-  isLoggedIn: boolean;
-  isAdmin: boolean;
-  onLogin: () => void;
-  onLogout: () => void;
+  isLoggedIn?: boolean;
+  isAdmin?: boolean;
+  onLogin?: () => void;
+  onLogout?: () => void;
   scrollToSection: (section: string) => void;
 }
 

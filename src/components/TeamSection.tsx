@@ -5,9 +5,9 @@ import { primaryFilters, positionSuggestions, type TeamMember } from "@/data/tea
 
 interface TeamSectionProps {
   teamMembers: TeamMember[];
-  isAdmin: boolean;
-  onEditPlayer: (player: TeamMember) => void;
-  onDeletePlayer: (id: number) => void;
+  isAdmin?: boolean;
+  onEditPlayer?: (player: TeamMember) => void;
+  onDeletePlayer?: (id: number) => void;
 }
 
 const specificPositions = [

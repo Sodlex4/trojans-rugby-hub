@@ -11,7 +11,7 @@ interface Slide {
 
 interface HeroSliderProps {
   slides: Slide[];
-  isLoggedIn: boolean;
+  isLoggedIn?: boolean;
   onJoinClick: () => void;
 }
 
