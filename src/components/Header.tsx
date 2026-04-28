@@ -23,7 +23,7 @@ const Header = ({
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = ["home", "about", "team", "news", "contact"];
+  const navItems = ["home", "about", "team", "matches", "stats", "news", "contact"];
 
   const handleNavClick = (section: string) => {
     scrollToSection(section);
