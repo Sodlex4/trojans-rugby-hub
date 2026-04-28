@@ -11,7 +11,7 @@ import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
 import { 
   login, logout, isAuthenticated, isAdmin,
   getAllJoinRequests, acceptJoinRequest, declineJoinRequest,
-  getSettings, saveSettings,
+  getSettings, saveSettings, getSiteLogo,
   getMatches, saveMatches, addMatch, updateMatch, deleteMatch,
   getPlayerStats, savePlayerStats, addPlayerStat, updatePlayerStat, deletePlayerStat, type PlayerStat
 } from "@/lib/auth";
