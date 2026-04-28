@@ -8,15 +8,16 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team";
 import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
-import { login, logout, getStoredAuth, isAuthenticated, isAdmin, getAuthHeaders } from "@/lib/auth";
+import { 
+  login, logout, isAuthenticated, isAdmin,
+  getAllJoinRequests, acceptJoinRequest, declineJoinRequest 
+} from "@/lib/auth";
 
 const positions = [
   "Prop", "Hooker", "Lock", "Flanker", "Number 8",
   "Scrum-Half", "Fly-Half", "Centre", "Wing", "Full-Back",
   "Head Coach", "Manager", "Physio"
 ];
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://trojans-backend-production.up.railway.app";
 
 interface JoinRequest {
   id: number;
@@ -92,12 +93,9 @@ const AdminPage = () => {
   const fetchJoinRequests = async () => {
     setIsLoadingRequests(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/join-requests`);
-      const data = await response.json();
-      if (data.success) {
-        setJoinRequests(data.data);
-        setPendingCount(data.data.filter((r: JoinRequest) => r.status === "PENDING").length);
-      }
+      const requests = getAllJoinRequests();
+      setJoinRequests(requests);
+      setPendingCount(requests.filter((r: JoinRequest) => r.status === "PENDING").length);
     } catch (error) {
       console.error("Failed to fetch join requests:", error);
       toast.error("Failed to load join requests");
@@ -108,16 +106,9 @@ const AdminPage = () => {
 
   const handleAcceptRequest = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/join-requests/${id}/accept`, {
-        method: "PUT",
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success("Request accepted!");
-        fetchJoinRequests();
-      } else {
-        toast.error(data.message || "Failed to accept request");
-      }
+      acceptJoinRequest(id);
+      toast.success("Request accepted!");
+      fetchJoinRequests();
     } catch (error) {
       toast.error("Failed to accept request");
     }
@@ -125,16 +116,9 @@ const AdminPage = () => {
 
   const handleDeclineRequest = async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/join-requests/${id}/decline`, {
-        method: "PUT",
-      });
-      const data = await response.json();
-      if (data.success) {
-        toast.success("Request declined");
-        fetchJoinRequests();
-      } else {
-        toast.error(data.message || "Failed to decline request");
-      }
+      declineJoinRequest(id);
+      toast.success("Request declined");
+      fetchJoinRequests();
     } catch (error) {
       toast.error("Failed to decline request");
     }
