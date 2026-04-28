@@ -33,7 +33,7 @@ interface Settings {
 const defaultSettings: Settings = {
   siteTitle: "Trojans Murang'a RFC",
   siteTagline: "Champions of Central Kenya Rugby",
-  siteDescription: "Trojans Murang'a Rugby Football Club - The pride of Central Kenya. Join our championship-winning team.",
+  siteDescription: "Building champions, fostering community, celebrating excellence in Kenyan rugby.",
   contactEmail: "info@trojans.co.ke",
   contactPhone: "+254 700 000 000",
   contactAddress: "Murang'a, Kenya",
