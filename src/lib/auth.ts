@@ -1,5 +1,7 @@
 const JOIN_REQUESTS_KEY = "trojans_join_requests";
 const SETTINGS_KEY = "trojans_settings";
+const MATCHES_KEY = "trojans_matches";
+const STATS_KEY = "trojans_stats";
 
 interface JoinRequest {
   id: number;
@@ -217,4 +219,125 @@ export const updateSettings = (updates: Partial<Settings>): Settings => {
   const updated = { ...current, ...updates };
   saveSettings(updated);
   return updated;
+};
+
+// ===== MATCHES FUNCTIONS =====
+interface Match {
+  id: number;
+  date: string;
+  time: string;
+  opponent: string;
+  opponentLogo: string;
+  venue: string;
+  competition: string;
+  result?: string;
+  trojansScore?: number;
+  opponentScore?: number;
+  isHome: boolean;
+  status: "scheduled" | "completed" | "live";
+}
+
+const defaultMatches: Match[] = [
+  { id: 1, date: "May 10, 2026", time: "3:00 PM", opponent: "Kisumu RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Kenya Cup", status: "scheduled", isHome: true },
+  { id: 2, date: "May 17, 2026", time: "4:00 PM", opponent: "Nairobi Harlequins", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Nairobi Safari Park", competition: "Kenya Cup", status: "scheduled", isHome: false },
+  { id: 3, date: "May 24, 2026", time: "3:00 PM", opponent: "Mombasa RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Kenya Cup", status: "scheduled", isHome: true },
+  { id: 4, date: "May 31, 2026", time: "2:30 PM", opponent: "Nakuru RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Nakuru Athletics Club", competition: "Kenya Cup", status: "scheduled", isHome: false },
+  { id: 5, date: "April 12, 2026", time: "3:00 PM", opponent: "Kenyatta University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Fifteen Cup", result: "W", trojansScore: 24, opponentScore: 12, status: "completed", isHome: true },
+  { id: 6, date: "April 5, 2026", time: "4:00 PM", opponent: "Strathmore", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Strathmore Ground", competition: "Fifteen Cup", result: "W", trojansScore: 18, opponentScore: 15, status: "completed", isHome: false },
+  { id: 7, date: "March 29, 2026", time: "3:00 PM", opponent: "Western Suburbs", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Fifteen Cup", result: "W", trojansScore: 32, opponentScore: 8, status: "completed", isHome: true },
+];
+
+export const getMatches = (): Match[] => {
+  try {
+    const stored = localStorage.getItem(MATCHES_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) { console.error("Failed to parse matches"); }
+  return defaultMatches;
+};
+
+export const saveMatches = (matches: Match[]): void => {
+  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+};
+
+export const addMatch = (match: Omit<Match, "id">): void => {
+  const matches = getMatches();
+  const newMatch = { ...match, id: Date.now() };
+  matches.push(newMatch);
+  saveMatches(matches);
+};
+
+export const updateMatch = (id: number, updates: Partial<Match>): void => {
+  const matches = getMatches();
+  const idx = matches.findIndex(m => m.id === id);
+  if (idx !== -1) {
+    matches[idx] = { ...matches[idx], ...updates };
+    saveMatches(matches);
+  }
+};
+
+export const deleteMatch = (id: number): void => {
+  const matches = getMatches().filter(m => m.id !== id);
+  saveMatches(matches);
+};
+
+// ===== PLAYER STATS FUNCTIONS =====
+export interface PlayerStat {
+  id: number;
+  name: string;
+  position: string;
+  appearances: number;
+  tries: number;
+  conversions: number;
+  penalties: number;
+  dropGoals: number;
+  points: number;
+  tackles: number;
+  turnovers: number;
+  manOfMatch: number;
+  yellowCards: number;
+  redCards: number;
+}
+
+const defaultStats: PlayerStat[] = [
+  { id: 1, name: "Andre Obure", position: "Prop", appearances: 12, tries: 3, conversions: 0, penalties: 0, dropGoals: 0, points: 15, tackles: 145, turnovers: 12, manOfMatch: 2, yellowCards: 1, redCards: 0 },
+  { id: 2, name: "Steve Odongo", position: "Hooker", appearances: 12, tries: 4, conversions: 0, penalties: 0, dropGoals: 0, points: 20, tackles: 132, turnovers: 18, manOfMatch: 3, yellowCards: 0, redCards: 0 },
+  { id: 7, name: "Simon Koigi", position: "Flanker", appearances: 11, tries: 5, conversions: 0, penalties: 0, dropGoals: 0, points: 25, tackles: 156, turnovers: 22, manOfMatch: 4, yellowCards: 1, redCards: 0 },
+  { id: 9, name: "James Waithaka", position: "Scrum-Half", appearances: 12, tries: 6, conversions: 0, penalties: 0, dropGoals: 0, points: 30, tackles: 89, turnovers: 45, manOfMatch: 5, yellowCards: 0, redCards: 0 },
+  { id: 10, name: "Sam Nyanga", position: "Fly-Half", appearances: 12, tries: 4, conversions: 28, penalties: 15, dropGoals: 3, points: 127, tackles: 76, turnovers: 12, manOfMatch: 6, yellowCards: 0, redCards: 0 },
+  { id: 12, name: "Cornelius Kiptum", position: "Centre", appearances: 11, tries: 7, conversions: 0, penalties: 0, dropGoals: 0, points: 35, tackles: 95, turnovers: 8, manOfMatch: 3, yellowCards: 0, redCards: 0 },
+  { id: 14, name: "Brian Ireri", position: "Wing", appearances: 10, tries: 8, conversions: 0, penalties: 0, dropGoals: 0, points: 40, tackles: 45, turnovers: 6, manOfMatch: 4, yellowCards: 0, redCards: 0 },
+  { id: 15, name: "Brian Selete", position: "Full-Back", appearances: 12, tries: 5, conversions: 0, penalties: 0, dropGoals: 0, points: 25, tackles: 68, turnovers: 15, manOfMatch: 3, yellowCards: 1, redCards: 0 },
+];
+
+export const getPlayerStats = (): PlayerStat[] => {
+  try {
+    const stored = localStorage.getItem(STATS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) { console.error("Failed to parse stats"); }
+  return defaultStats;
+};
+
+export const savePlayerStats = (stats: PlayerStat[]): void => {
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+};
+
+export const updatePlayerStat = (id: number, updates: Partial<PlayerStat>): void => {
+  const stats = getPlayerStats();
+  const idx = stats.findIndex(s => s.id === id);
+  if (idx !== -1) {
+    stats[idx] = { ...stats[idx], ...updates };
+    savePlayerStats(stats);
+  }
+};
+
+export const addPlayerStat = (stat: Omit<PlayerStat, "id">): void => {
+  const stats = getPlayerStats();
+  const newStat = { ...stat, id: Date.now() };
+  stats.push(newStat);
+  savePlayerStats(stats);
+};
+
+export const deletePlayerStat = (id: number): void => {
+  const stats = getPlayerStats().filter(s => s.id !== id);
+  savePlayerStats(stats);
 };
