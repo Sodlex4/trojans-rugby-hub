@@ -2,13 +2,12 @@ import { useState } from "react";
 import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { submitJoinRequestLocal } from "@/lib/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://trojans-backend-production.up.railway.app";
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [joinForm, setJoinForm] = useState({ name: "", email: "", phone: "", message: "" });
@@ -23,22 +22,16 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/join-requests`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(joinForm),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
+      const result = await submitJoinRequestLocal(joinForm);
+      
+      if (result.success) {
         setShowSuccess(true);
         toast.success("Request sent! Waiting for admin approval.");
       } else {
-        toast.error(data.message || "Failed to send request");
+        toast.error(result.error || "Failed to send request");
       }
     } catch (error) {
-      toast.error("Failed to connect to server. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
