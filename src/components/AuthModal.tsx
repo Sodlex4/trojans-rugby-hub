@@ -8,7 +8,7 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://trojans-backend-production.up.railway.app";
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [joinForm, setJoinForm] = useState({ name: "", email: "", phone: "", message: "" });

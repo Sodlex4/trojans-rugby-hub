@@ -16,7 +16,7 @@ const positions = [
   "Head Coach", "Manager", "Physio"
 ];
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://trojans-backend-production.up.railway.app";
 
 interface JoinRequest {
   id: number;
@@ -63,15 +63,15 @@ const AdminPage = () => {
     }
     
     setIsLoggingIn(true);
-    const success = await login(loginForm.username, loginForm.password);
+    const result = await login(loginForm.username, loginForm.password);
     setIsLoggingIn(false);
     
-    if (success) {
+    if (result.success) {
       setIsLoggedIn(true);
       setIsAdminUser(isAdmin());
       toast.success("Welcome back!");
     } else {
-      toast.error("Invalid credentials");
+      toast.error(result.error || "Invalid credentials");
     }
   };
 

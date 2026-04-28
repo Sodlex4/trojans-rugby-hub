@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://trojans-backend-production.up.railway.app";
 
 interface LoginResponse {
   token: string;
@@ -35,8 +35,10 @@ export const clearStoredAuth = (): void => {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 };
 
-export const login = async (username: string, password: string): Promise<boolean> => {
+export const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
   try {
+    console.log("Logging in to:", `${API_BASE_URL}/api/auth/login`);
+    
     const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -44,6 +46,7 @@ export const login = async (username: string, password: string): Promise<boolean
     });
 
     const data = await response.json();
+    console.log("Login response:", data);
 
     if (data.success && data.data?.token) {
       const auth: AuthState = {
@@ -53,12 +56,13 @@ export const login = async (username: string, password: string): Promise<boolean
         role: data.data.role,
       };
       setStoredAuth(auth);
-      return true;
+      return { success: true };
     }
-    return false;
+    
+    return { success: false, error: data.message || "Login failed" };
   } catch (error) {
     console.error("Login error:", error);
-    return false;
+    return { success: false, error: "Cannot connect to server. Is backend running?" };
   }
 };
 
