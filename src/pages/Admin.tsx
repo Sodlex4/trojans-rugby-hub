@@ -1,261 +1,83 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { 
-  Plus, Edit2, Trash2, Users, Newspaper, Settings, 
-  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook, Bell, Clock, Trophy, Target, Shield, CalendarDays
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { LogOut, ArrowLeft, LayoutDashboard, Users, CalendarDays, Trophy, Newspaper, UserPlus, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team";
 import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
 import { 
   login, logout, isAuthenticated, isAdmin,
-  getAllJoinRequests, acceptJoinRequest, declineJoinRequest,
-  getSettings, saveSettings, getSiteLogo,
-  getMatches, saveMatches, addMatch, updateMatch, deleteMatch,
-  getPlayerStats, savePlayerStats, addPlayerStat, updatePlayerStat, deletePlayerStat, type PlayerStat
+  getAllJoinRequests,
+  getSettings, getSiteLogo,
 } from "@/lib/auth";
-
-const positions = [
-  "Prop", "Hooker", "Lock", "Flanker", "Number 8",
-  "Scrum-Half", "Fly-Half", "Centre", "Wing", "Full-Back",
-  "Head Coach", "Manager", "Physio"
-];
-
-interface JoinRequest {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-  status: string;
-  createdAt: string;
-}
+import LoginForm from "@/components/admin/LoginForm";
+import DashboardTab from "@/components/admin/DashboardTab";
+import PlayersTab from "@/components/admin/PlayersTab";
+import MatchesTab from "@/components/admin/MatchesTab";
+import StatsTab from "@/components/admin/StatsTab";
+import NewsTab from "@/components/admin/NewsTab";
+import JoinRequestsTab from "@/components/admin/JoinRequestsTab";
+import SettingsTab from "@/components/admin/SettingsTab";
 
 const AdminPage = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [isAdminUser, setIsAdminUser] = useState(isAdmin());
-  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
   
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(initialNewsItems);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "players" | "matches" | "stats" | "news" | "joinRequests" | "settings">("dashboard");
-  const [editingPlayer, setEditingPlayer] = useState<Partial<TeamMember> | null>(null);
-  const [editingNews, setEditingNews] = useState<Partial<NewsItem> | null>(null);
-  const [showPlayerForm, setShowPlayerForm] = useState(false);
-  const [showNewsForm, setShowNewsForm] = useState(false);
-  const [playerSearchQuery, setPlayerSearchQuery] = useState("");
-  const [newsSearchQuery, setNewsSearchQuery] = useState("");
-
-  // Check auth on mount
-  useEffect(() => {
-    setIsLoggedIn(isAuthenticated());
-    setIsAdminUser(isAdmin());
-  }, []);
-  
-  // Join Requests state
-  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
-  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [lastRequestCount, setLastRequestCount] = useState(0);
   const [hasNewNotification, setHasNewNotification] = useState(false);
-  const [loginLogo, setLoginLogo] = useState<string>("/logo.jpg");
+  const [loginLogo, setLoginLogo] = useState("/logo.jpg");
 
   useEffect(() => {
     setLoginLogo(getSiteLogo());
   }, []);
 
-  // Settings state
-  const [settings, setSettings] = useState(getSettings());
-  const [matches, setMatches] = useState(getMatches());
-  const [playerStats, setPlayerStats] = useState(getPlayerStats());
-  const [showMatchForm, setShowMatchForm] = useState(false);
-  const [showStatForm, setShowStatForm] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<any>(null);
-  const [editingStat, setEditingStat] = useState<PlayerStat | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-
-  // Real-time polling for join requests (every 30 seconds)
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    
-    fetchJoinRequests();
-    
-    const interval = setInterval(() => {
-      const currentRequests = getAllJoinRequests();
-      const currentPending = currentRequests.filter((r: JoinRequest) => r.status === "PENDING").length;
-      
-      if (currentPending > lastRequestCount && lastRequestCount > 0) {
-        const newRequests = currentPending - lastRequestCount;
-        toast.success(`🔔 You have ${newRequests} new join request${newRequests > 1 ? 's' : ''}!`, {
-          duration: 5000,
-        });
-        setHasNewNotification(true);
-      }
-      
-      setJoinRequests(currentRequests);
-      setPendingCount(currentPending);
-      setLastRequestCount(currentPending);
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [isLoggedIn, lastRequestCount]);
-
-  const handleMarkNotificationSeen = () => {
-    setHasNewNotification(false);
-  };
-
-  const handleLogin = async () => {
-    if (!loginForm.username || !loginForm.password) {
-      toast.error("Please enter username and password");
-      return;
-    }
-    
-    setIsLoggingIn(true);
-    const result = await login(loginForm.username, loginForm.password);
-    setIsLoggingIn(false);
-    
-    if (result.success) {
-      setIsLoggedIn(true);
-      setIsAdminUser(true); // Force true since login succeeded with admin credentials
-      setLoginForm({ username: "", password: "" });
-      toast.success("Welcome back!");
-    } else {
-      toast.error(result.error || "Invalid credentials");
-    }
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setIsAdminUser(true);
   };
 
   const handleLogout = () => {
     logout();
     setIsLoggedIn(false);
     setIsAdminUser(false);
-    setLoginForm({ username: "", password: "" });
   };
 
-  const handleSaveSettings = () => {
-    saveSettings(settings);
-    toast.success("Settings saved successfully!");
+  const handleMarkNotificationSeen = () => {
+    setHasNewNotification(false);
   };
-
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
-      return;
-    }
-    
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be less than 2MB");
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      setLogoPreview(result);
-      setSettings({ ...settings, siteLogo: result });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveLogo = () => {
-    setLogoPreview(null);
-    setSettings({ ...settings, siteLogo: "" });
-  };
-
-  // Fetch join requests on mount and when tab changes
-  useEffect(() => {
-    if (activeTab === "joinRequests") {
-      fetchJoinRequests();
-    }
-  }, [activeTab]);
 
   const fetchJoinRequests = async () => {
-    setIsLoadingRequests(true);
     try {
-      const requests = getAllJoinRequests();
+      const requests = await getAllJoinRequests();
       setJoinRequests(requests);
-      setPendingCount(requests.filter((r: JoinRequest) => r.status === "PENDING").length);
+      setPendingCount(requests.filter((r: any) => r.status === "PENDING").length);
     } catch (error) {
-      console.error("Failed to fetch join requests:", error);
-      toast.error("Failed to load join requests");
-    } finally {
-      setIsLoadingRequests(false);
+      console.error("Failed to fetch join requests");
     }
   };
 
-  const handleAcceptRequest = async (id: number) => {
-    try {
-      acceptJoinRequest(id);
-      toast.success("Request accepted!");
-      fetchJoinRequests();
-    } catch (error) {
-      toast.error("Failed to accept request");
-    }
-  };
-
-  const handleDeclineRequest = async (id: number) => {
-    try {
-      declineJoinRequest(id);
-      toast.success("Request declined");
-      fetchJoinRequests();
-    } catch (error) {
-      toast.error("Failed to decline request");
-    }
-  };
-
-  // Filter functions
-  const filteredPlayers = playerSearchQuery 
-    ? teamMembers.filter(p => 
-        p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
-        p.position.toLowerCase().includes(playerSearchQuery.toLowerCase())
-      )
-    : teamMembers;
-
-  const filteredNews = newsSearchQuery
-    ? newsItems.filter(n =>
-        n.title.toLowerCase().includes(newsSearchQuery.toLowerCase()) ||
-        n.description.toLowerCase().includes(newsSearchQuery.toLowerCase())
-      )
-    : newsItems;
-
-  // Stats
-  const stats = {
-    totalPlayers: teamMembers.length,
-    totalNews: newsItems.length,
-    forwards: teamMembers.filter(p => p.category === "Forwards").length,
-    backs: teamMembers.filter(p => p.category === "Backs").length,
-    staff: teamMembers.filter(p => p.category === "Staff").length,
-    pendingRequests: pendingCount,
-  };
-
-  const handleSavePlayer = () => {
-    if (!editingPlayer?.name || !editingPlayer?.position) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (editingPlayer.id) {
-      setTeamMembers(teamMembers.map((p) => (p.id === editingPlayer.id ? editingPlayer as TeamMember : p)));
+  const handleSavePlayer = (player: Partial<TeamMember>) => {
+    if (player.id) {
+      setTeamMembers(teamMembers.map((p) => (p.id === player.id ? player as TeamMember : p)));
       toast.success("Player updated successfully");
     } else {
       const newPlayer: TeamMember = {
         id: Math.max(...teamMembers.map((p) => p.id), 0) + 1,
-        name: editingPlayer.name || "",
-        position: editingPlayer.position || "",
-        number: editingPlayer.number || "",
-        image: editingPlayer.image || "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&q=80",
-        category: ["Prop", "Hooker", "Lock", "Flanker", "Number 8"].includes(editingPlayer.position || "") ? "Forwards" : "Backs",
+        name: player.name || "",
+        position: player.position || "",
+        number: player.number || "",
+        image: player.image || "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&q=80",
+        category: ["Prop", "Hooker", "Lock", "Flanker", "Number 8"].includes(player.position || "") ? "Forwards" : "Backs",
       };
       setTeamMembers([...teamMembers, newPlayer]);
       toast.success("Player added successfully");
     }
-    setEditingPlayer(null);
-    setShowPlayerForm(false);
   };
 
   const handleDeletePlayer = (id: number, name: string) => {
@@ -265,28 +87,21 @@ const AdminPage = () => {
     }
   };
 
-  const handleSaveNews = () => {
-    if (!editingNews?.title || !editingNews?.description) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (editingNews.id) {
-      setNewsItems(newsItems.map((n) => (n.id === editingNews.id ? editingNews as NewsItem : n)));
+  const handleSaveNews = (news: Partial<NewsItem>) => {
+    if (news.id) {
+      setNewsItems(newsItems.map((n) => (n.id === news.id ? news as NewsItem : n)));
       toast.success("News updated successfully");
     } else {
       const newNews: NewsItem = {
         id: Math.max(...newsItems.map((n) => n.id), 0) + 1,
         date: new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" }).toUpperCase().replace(/ /g, ". "),
-        title: editingNews.title || "",
-        description: editingNews.description || "",
-        image: editingNews.image || "https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600&q=80",
+        title: news.title || "",
+        description: news.description || "",
+        image: news.image || "https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600&q=80",
       };
       setNewsItems([...newsItems, newNews]);
       toast.success("News added successfully");
     }
-    setEditingNews(null);
-    setShowNewsForm(false);
   };
 
   const handleDeleteNews = (id: number, title: string) => {
@@ -296,92 +111,21 @@ const AdminPage = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB", { 
-      day: "2-digit", 
-      month: "long", 
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+  const handleSettingsChange = () => {
+    setLoginLogo(getSiteLogo());
   };
 
-  // Show login form if not authenticated
   if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border">
-          <div className="text-center mb-8">
-            <img 
-              src={loginLogo} 
-              alt="Trojans Logo" 
-              className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg" 
-            />
-            <h1 className="text-2xl font-display font-bold text-foreground uppercase">Admin Login</h1>
-            <p className="text-muted-foreground mt-2">Sign in to manage the club</p>
-          </div>
-           
-          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
-            <div>
-              <label className="block text-foreground font-semibold mb-2">Username</label>
-              <input
-                type="text"
-                placeholder="Enter your username"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                className="input-field"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-foreground font-semibold mb-2">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                className="input-field"
-              />
-            </div>
-            
-            <motion.button
-              type="submit"
-              disabled={isLoggingIn}
-              className="w-full bg-primary text-primary-foreground py-4 rounded-xl 
-                       font-display font-bold text-lg uppercase
-                       hover:bg-trojan-green-dark transition-all duration-300
-                       disabled:opacity-50"
-              whileHover={{ scale: isLoggingIn ? 1 : 1.02 }}
-              whileTap={{ scale: isLoggingIn ? 1 : 0.98 }}
-            >
-              {isLoggingIn ? "Signing in..." : "LOGIN"}
-            </motion.button>
-            
-            <div className="text-center pt-4">
-              <Link to="/" className="text-primary hover:underline text-sm">
-                ← Back to homepage
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
+    return <LoginForm onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Check admin role
   if (!isAdminUser) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border text-center">
           <h1 className="text-2xl font-bold text-red-500 mb-4">Access Denied</h1>
           <p className="text-muted-foreground mb-6">You don't have admin privileges.</p>
-          <button 
-            onClick={handleLogout}
-            className="btn-accent"
-          >
-            Logout
-          </button>
+          <button onClick={handleLogout} className="btn-accent">Logout</button>
         </div>
       </div>
     );
@@ -389,31 +133,24 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-primary shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link to="/" className="flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors">
+              <a href="/" className="flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors">
                 <ArrowLeft size={20} />
                 <span className="hidden sm:inline">Back to Site</span>
-              </Link>
+              </a>
               <div className="w-px h-6 bg-primary-foreground/30 hidden sm:block" />
-              <h1 className="text-lg md:text-xl font-display font-bold text-primary-foreground">
-                Admin Dashboard
-              </h1>
+              <h1 className="text-lg md:text-xl font-display font-bold text-primary-foreground">Admin Dashboard</h1>
             </div>
-            <button 
-              onClick={handleLogout} 
-              className="flex items-center gap-2 bg-accent/90 text-accent-foreground px-4 py-2 rounded-lg font-semibold hover:bg-accent transition-colors text-sm"
-            >
+            <button onClick={handleLogout} className="flex items-center gap-2 bg-accent/90 text-accent-foreground px-4 py-2 rounded-lg font-semibold hover:bg-accent transition-colors text-sm">
               <LogOut size={16} />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       
-        {/* Tab Navigation */}
         <div className="container mx-auto px-4 md:px-6">
           <nav className="flex gap-1 overflow-x-auto pb-1">
             {[
@@ -422,16 +159,14 @@ const AdminPage = () => {
               { id: "matches", label: "Matches", icon: CalendarDays },
               { id: "stats", label: "Stats", icon: Trophy },
               { id: "news", label: "News", icon: Newspaper },
-              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: stats.pendingRequests, hasNotification: hasNewNotification },
+              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: pendingCount, hasNotification: hasNewNotification },
               { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => {
-                  setActiveTab(tab.id as typeof activeTab);
-                  if (tab.id === "joinRequests") {
-                    handleMarkNotificationSeen();
-                  }
+                  setActiveTab(tab.id);
+                  if (tab.id === "joinRequests") handleMarkNotificationSeen();
                 }}
                 className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
@@ -448,12 +183,10 @@ const AdminPage = () => {
                   <tab.icon size={18} />
                 )}
                 <span>{tab.label}</span>
-                {tab.id === "players" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{stats.totalPlayers}</span>}
-                {tab.id === "news" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{stats.totalNews}</span>}
+                {tab.id === "players" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{teamMembers.length}</span>}
+                {tab.id === "news" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{newsItems.length}</span>}
                 {tab.id === "joinRequests" && (tab.badge as number) > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab.hasNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>
-                    {tab.badge}
-                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab.hasNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>{tab.badge}</span>
                 )}
               </button>
             ))}
@@ -461,1053 +194,41 @@ const AdminPage = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 md:px-6 py-6">
-        
-        {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Overview</h2>
-            
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Users className="text-primary" size={20} />
-                  </div>
-                  <span className="text-muted-foreground text-sm">Total Players</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{stats.totalPlayers}</p>
-              </div>
-              
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-accent/10 rounded-lg">
-                    <Newspaper className="text-accent" size={20} />
-                  </div>
-                  <span className="text-muted-foreground text-sm">News Items</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{stats.totalNews}</p>
-              </div>
-              
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-trojan-green/10 rounded-lg">
-                    <Activity className="text-trojan-green-dark" size={20} />
-                  </div>
-                  <span className="text-muted-foreground text-sm">Forwards</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{stats.forwards}</p>
-              </div>
-              
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-trojan-gold/10 rounded-lg">
-                    <UserPlus className="text-trojan-gold-dark" size={20} />
-                  </div>
-                  <span className="text-muted-foreground text-sm">Backs</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{stats.backs}</p>
-              </div>
-
-              <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-trojan-red/10 rounded-lg">
-                    <UserPlus className="text-trojan-red" size={20} />
-                  </div>
-                  <span className="text-muted-foreground text-sm">Pending Requests</span>
-                </div>
-                <p className="text-3xl font-bold text-foreground">{stats.pendingRequests}</p>
-              </div>
-            </div>
-
-            {/* Pending Requests Widget */}
-            {joinRequests.length > 0 && (
-              <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Bell className="text-primary" size={20} />
-                    </div>
-                    <h3 className="font-semibold text-foreground text-lg">Recent Join Requests</h3>
-                  </div>
-                  <button 
-                    onClick={() => { handleMarkNotificationSeen(); setActiveTab("joinRequests"); }}
-                    className="text-sm text-primary hover:underline"
-                  >
-                    View All →
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
-                  {joinRequests.slice(0, 5).map((request) => (
-                    <div 
-                      key={request.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
-                        request.status === "PENDING" 
-                          ? "bg-trojan-gold/5 border-trojan-gold/30" 
-                          : request.status === "ACCEPTED"
-                          ? "bg-primary/5 border-primary/30"
-                          : "bg-muted/30 border-border opacity-60"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                          <span className="text-primary font-bold">
-                            {request.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{request.name}</p>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock size={12} />
-                            {new Date(request.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {request.status === "PENDING" && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleAcceptRequest(request.id)}
-                            className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
-                            title="Accept"
-                          >
-                            <Check size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeclineRequest(request.id)}
-                            className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-                            title="Decline"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      )}
-                      
-                      {request.status !== "PENDING" && (
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          request.status === "ACCEPTED" 
-                            ? "bg-primary/20 text-primary"
-                            : "bg-muted text-muted-foreground"
-                        }`}>
-                          {request.status}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                
-                {pendingCount > 5 && (
-                  <p className="text-center text-sm text-muted-foreground mt-4">
-                    + {pendingCount - 5} more requests
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  onClick={() => { setEditingPlayer({}); setShowPlayerForm(true); setActiveTab("players"); }}
-                  className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-                >
-                  <Plus size={18} />
-                  Add Player
-                </button>
-                <button 
-                  onClick={() => { setEditingNews({}); setShowNewsForm(true); setActiveTab("news"); }}
-                  className="flex items-center gap-2 bg-accent text-accent-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-red-dark transition-colors"
-                >
-                  <Plus size={18} />
-                  Add News
-                </button>
-                {stats.pendingRequests > 0 && (
-                  <button 
-                    onClick={() => setActiveTab("joinRequests")}
-                    className="flex items-center gap-2 bg-trojan-red text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-red-dark transition-colors"
-                  >
-                    <UserPlus size={18} />
-                    Review Requests ({stats.pendingRequests})
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
+          <DashboardTab 
+            teamMembers={teamMembers}
+            newsItems={newsItems}
+            joinRequests={joinRequests}
+            setActiveTab={setActiveTab}
+            setJoinRequests={setJoinRequests}
+            setPendingCount={setPendingCount}
+          />
         )}
 
-        {/* Players Tab */}
         {activeTab === "players" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Players Management</h2>
-              <button 
-                onClick={() => { setEditingPlayer({}); setShowPlayerForm(true); }} 
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Plus size={18} />
-                Add Player
-              </button>
-            </div>
-
-            {/* Search */}
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-              <input
-                type="text"
-                placeholder="Search players by name or position..."
-                value={playerSearchQuery}
-                onChange={(e) => setPlayerSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-              />
-            </div>
-
-            {/* Player Form Modal */}
-            {showPlayerForm && (
-              <motion.div 
-                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <motion.div 
-                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                >
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    {editingPlayer?.id ? "Edit Player" : "Add New Player"}
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Player Name *</label>
-                      <input
-                        type="text"
-                        value={editingPlayer?.name || ""}
-                        onChange={(e) => setEditingPlayer({ ...editingPlayer, name: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        placeholder="Enter player name"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Position *</label>
-                        <select
-                          value={editingPlayer?.position || ""}
-                          onChange={(e) => setEditingPlayer({ ...editingPlayer, position: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        >
-                          <option value="">Select position</option>
-                          {positions.map((pos) => (
-                            <option key={pos} value={pos}>{pos}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Jersey Number</label>
-                        <input
-                          type="text"
-                          value={editingPlayer?.number || ""}
-                          onChange={(e) => setEditingPlayer({ ...editingPlayer, number: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                          placeholder="e.g., 10"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Image URL</label>
-                      <input
-                        type="text"
-                        value={editingPlayer?.image || ""}
-                        onChange={(e) => setEditingPlayer({ ...editingPlayer, image: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <button 
-                      onClick={handleSavePlayer}
-                      className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-                    >
-                      {editingPlayer?.id ? "Update Player" : "Add Player"}
-                    </button>
-                    <button 
-                      onClick={() => { setShowPlayerForm(false); setEditingPlayer(null); }}
-                      className="bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* Players Grid */}
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredPlayers.map((player) => (
-                <div 
-                  key={player.id} 
-                  className="bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all hover:shadow-md"
-                >
-                  <div className="aspect-[4/3] relative">
-                    <img
-                      src={player.image}
-                      alt={player.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2 flex gap-1">
-                      <button
-                        onClick={() => { setEditingPlayer(player); setShowPlayerForm(true); }}
-                        className="p-1.5 bg-primary/90 text-primary-foreground rounded-lg hover:bg-primary transition-colors"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDeletePlayer(player.id, player.name)}
-                        className="p-1.5 bg-accent/90 text-accent-foreground rounded-lg hover:bg-accent transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    {player.number && (
-                      <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
-                        {player.number}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="font-semibold text-foreground truncate">{player.name}</p>
-                    <p className="text-sm text-muted-foreground">{player.position}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredPlayers.length === 0 && (
-              <div className="text-center py-12">
-                <AlertCircle className="mx-auto text-muted-foreground mb-4" size={40} />
-                <p className="text-muted-foreground">No players found</p>
-              </div>
-            )}
-          </motion.div>
+          <PlayersTab 
+            players={teamMembers}
+            onSavePlayer={handleSavePlayer}
+            onDeletePlayer={handleDeletePlayer}
+          />
         )}
 
-        {/* Matches Tab */}
-        {activeTab === "matches" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Match Management</h2>
-              <button 
-                onClick={() => { setEditingMatch({ date: "", time: "", opponent: "", venue: "", competition: "", status: "scheduled", isHome: true, trojansScore: 0, opponentScore: 0 }); setShowMatchForm(true); }} 
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Plus size={18} />
-                Add Match
-              </button>
-            </div>
+        {activeTab === "matches" && <MatchesTab teamMembers={teamMembers} />}
 
-            {showMatchForm && (
-              <motion.div 
-                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <motion.div 
-                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                >
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    {editingMatch?.id ? "Edit Match" : "Add New Match"}
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Date *</label>
-                        <input type="text" placeholder="May 10, 2026" value={editingMatch?.date || ""} onChange={(e) => setEditingMatch({ ...editingMatch, date: e.target.value })} className="input-field" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Time *</label>
-                        <input type="text" placeholder="3:00 PM" value={editingMatch?.time || ""} onChange={(e) => setEditingMatch({ ...editingMatch, time: e.target.value })} className="input-field" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Opponent *</label>
-                      <input type="text" placeholder="Kisumu RFC" value={editingMatch?.opponent || ""} onChange={(e) => setEditingMatch({ ...editingMatch, opponent: e.target.value })} className="input-field" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Venue *</label>
-                        <input type="text" placeholder="Murang'a Sports Complex" value={editingMatch?.venue || ""} onChange={(e) => setEditingMatch({ ...editingMatch, venue: e.target.value })} className="input-field" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Competition *</label>
-                        <input type="text" placeholder="Kenya Cup" value={editingMatch?.competition || ""} onChange={(e) => setEditingMatch({ ...editingMatch, competition: e.target.value })} className="input-field" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Result</label>
-                        <select value={editingMatch?.result || ""} onChange={(e) => setEditingMatch({ ...editingMatch, result: e.target.value })} className="input-field">
-                          <option value="">Scheduled</option>
-                          <option value="W">Win</option>
-                          <option value="L">Loss</option>
-                          <option value="D">Draw</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Status</label>
-                        <select value={editingMatch?.status || "scheduled"} onChange={(e) => setEditingMatch({ ...editingMatch, status: e.target.value })} className="input-field">
-                          <option value="scheduled">Scheduled</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Our Score</label>
-                        <input type="number" value={editingMatch?.trojansScore || 0} onChange={(e) => setEditingMatch({ ...editingMatch, trojansScore: parseInt(e.target.value) })} className="input-field" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Opponent Score</label>
-                        <input type="number" value={editingMatch?.opponentScore || 0} onChange={(e) => setEditingMatch({ ...editingMatch, opponentScore: parseInt(e.target.value) })} className="input-field" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Home/Away</label>
-                        <select value={editingMatch?.isHome ? "true" : "false"} onChange={(e) => setEditingMatch({ ...editingMatch, isHome: e.target.value === "true" })} className="input-field">
-                          <option value="true">Home</option>
-                          <option value="false">Away</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <button onClick={() => { setShowMatchForm(false); setEditingMatch(null); }} className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80">Cancel</button>
-                    <button onClick={() => { if (editingMatch?.id) { updateMatch(editingMatch.id, editingMatch); } else { addMatch(editingMatch); } setShowMatchForm(false); setEditingMatch(null); setMatches(getMatches()); toast.success("Match saved!"); }} className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark">Save Match</button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
+        {activeTab === "stats" && <StatsTab />}
 
-            <div className="space-y-4">
-              {matches.map((match) => (
-                <div key={match.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${match.result === "W" ? "bg-primary" : match.result === "L" ? "bg-accent" : "bg-muted"}`}>
-                      <Trophy size={20} className={match.result === "W" ? "text-primary-foreground" : "text-foreground"} />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-foreground">{match.date} - {match.competition}</p>
-                      <p className="text-sm text-muted-foreground">{match.opponent} @ {match.venue}</p>
-                      {match.status === "completed" && <p className="text-sm font-bold text-primary">{match.trojansScore} - {match.opponentScore} ({match.result})</p>}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setEditingMatch(match); setShowMatchForm(true); }} className="p-2 text-primary hover:bg-primary/10 rounded-lg"><Edit2 size={18} /></button>
-                    <button onClick={() => { if (confirm("Delete this match?")) { deleteMatch(match.id); setMatches(getMatches()); toast.success("Match deleted"); } }} className="p-2 text-accent hover:bg-accent/10 rounded-lg"><Trash2 size={18} /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Stats Tab */}
-        {activeTab === "stats" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Player Stats Management</h2>
-              <button 
-                onClick={() => { setEditingStat({ id: 0, name: "", position: "", appearances: 0, tries: 0, conversions: 0, penalties: 0, dropGoals: 0, points: 0, tackles: 0, turnovers: 0, manOfMatch: 0, yellowCards: 0, redCards: 0 }); setShowStatForm(true); }} 
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Plus size={18} />
-                Add Player Stats
-              </button>
-            </div>
-
-            {showStatForm && (
-              <motion.div 
-                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <motion.div 
-                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl max-h-[80vh] overflow-y-auto"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                >
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    {editingStat?.id ? "Edit Player Stats" : "Add Player Stats"}
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-foreground mb-1">Player Name *</label>
-                      <input type="text" placeholder="John Doe" value={editingStat?.name || ""} onChange={(e) => setEditingStat({ ...editingStat, name: e.target.value })} className="input-field" />
-                    </div>
-                    <div className="col-span-2">
-                      <label className="block text-sm font-medium text-foreground mb-1">Position *</label>
-                      <select value={editingStat?.position || ""} onChange={(e) => setEditingStat({ ...editingStat, position: e.target.value })} className="input-field">
-                        <option value="">Select Position</option>
-                        {positions.map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
-                    </div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Appearances</label><input type="number" value={editingStat?.appearances || 0} onChange={(e) => setEditingStat({ ...editingStat, appearances: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Tries</label><input type="number" value={editingStat?.tries || 0} onChange={(e) => setEditingStat({ ...editingStat, tries: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Conversions</label><input type="number" value={editingStat?.conversions || 0} onChange={(e) => setEditingStat({ ...editingStat, conversions: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Penalties</label><input type="number" value={editingStat?.penalties || 0} onChange={(e) => setEditingStat({ ...editingStat, penalties: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Drop Goals</label><input type="number" value={editingStat?.dropGoals || 0} onChange={(e) => setEditingStat({ ...editingStat, dropGoals: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Points</label><input type="number" value={editingStat?.points || 0} onChange={(e) => setEditingStat({ ...editingStat, points: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Tackles</label><input type="number" value={editingStat?.tackles || 0} onChange={(e) => setEditingStat({ ...editingStat, tackles: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Turnovers</label><input type="number" value={editingStat?.turnovers || 0} onChange={(e) => setEditingStat({ ...editingStat, turnovers: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Man of Match</label><input type="number" value={editingStat?.manOfMatch || 0} onChange={(e) => setEditingStat({ ...editingStat, manOfMatch: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Yellow Cards</label><input type="number" value={editingStat?.yellowCards || 0} onChange={(e) => setEditingStat({ ...editingStat, yellowCards: parseInt(e.target.value) })} className="input-field" /></div>
-                    <div><label className="block text-sm font-medium text-foreground mb-1">Red Cards</label><input type="number" value={editingStat?.redCards || 0} onChange={(e) => setEditingStat({ ...editingStat, redCards: parseInt(e.target.value) })} className="input-field" /></div>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <button onClick={() => { setShowStatForm(false); setEditingStat(null); }} className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80">Cancel</button>
-                    <button onClick={() => { if (editingStat?.id) { updatePlayerStat(editingStat.id, editingStat); } else { addPlayerStat(editingStat); } setShowStatForm(false); setEditingStat(null); setPlayerStats(getPlayerStats()); toast.success("Stats saved!"); }} className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark">Save Stats</button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            <div className="overflow-x-auto">
-              <table className="w-full bg-card rounded-xl border border-border">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Player</th>
-                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Position</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Apps</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tries</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Points</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tackles</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">MoM</th>
-                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {playerStats.map((stat) => (
-                    <tr key={stat.id} className="border-t border-border hover:bg-muted/30">
-                      <td className="p-3 font-medium text-foreground">{stat.name}</td>
-                      <td className="p-3 text-muted-foreground">{stat.position}</td>
-                      <td className="p-3 text-center text-foreground">{stat.appearances}</td>
-                      <td className="p-3 text-center text-primary font-medium">{stat.tries}</td>
-                      <td className="p-3 text-center text-trojan-gold font-bold">{stat.points}</td>
-                      <td className="p-3 text-center text-foreground">{stat.tackles}</td>
-                      <td className="p-3 text-center text-foreground">{stat.manOfMatch}</td>
-                      <td className="p-3 text-center">
-                        <button onClick={() => { setEditingStat(stat); setShowStatForm(true); }} className="p-1.5 text-primary hover:bg-primary/10 rounded mr-1"><Edit2 size={14} /></button>
-                        <button onClick={() => { if (confirm("Delete this stats entry?")) { deletePlayerStat(stat.id); setPlayerStats(getPlayerStats()); toast.success("Stats deleted"); } }} className="p-1.5 text-accent hover:bg-accent/10 rounded"><Trash2 size={14} /></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
-
-        {/* News Tab */}
         {activeTab === "news" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">News Management</h2>
-              <button 
-                onClick={() => { setEditingNews({}); setShowNewsForm(true); }} 
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Plus size={18} />
-                Add News
-              </button>
-            </div>
-
-            {/* Search */}
-            <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-              <input
-                type="text"
-                placeholder="Search news by title..."
-                value={newsSearchQuery}
-                onChange={(e) => setNewsSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-              />
-            </div>
-
-            {/* News Form Modal */}
-            {showNewsForm && (
-              <motion.div 
-                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <motion.div 
-                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl"
-                  initial={{ scale: 0.9 }}
-                  animate={{ scale: 1 }}
-                >
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    {editingNews?.id ? "Edit News" : "Add News Item"}
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Title *</label>
-                      <input
-                        type="text"
-                        value={editingNews?.title || ""}
-                        onChange={(e) => setEditingNews({ ...editingNews, title: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        placeholder="News title"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Description *</label>
-                      <textarea
-                        value={editingNews?.description || ""}
-                        onChange={(e) => setEditingNews({ ...editingNews, description: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 h-32 resize-none"
-                        placeholder="News description"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Image URL</label>
-                      <input
-                        type="text"
-                        value={editingNews?.image || ""}
-                        onChange={(e) => setEditingNews({ ...editingNews, image: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-3 mt-6">
-                    <button 
-                      onClick={handleSaveNews}
-                      className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-                    >
-                      {editingNews?.id ? "Update News" : "Add News"}
-                    </button>
-                    <button 
-                      onClick={() => { setShowNewsForm(false); setEditingNews(null); }}
-                      className="bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-
-            {/* News List */}
-            <div className="space-y-4">
-              {filteredNews.map((news) => (
-                <div 
-                  key={news.id} 
-                  className="bg-card rounded-xl p-4 border border-border hover:border-primary/30 transition-all hover:shadow-md flex gap-4"
-                >
-                  <img
-                    src={news.image}
-                    alt={news.title}
-                    className="w-24 h-20 rounded-lg object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground truncate">{news.title}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">{news.date}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-2">{news.description}</p>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => { setEditingNews(news); setShowNewsForm(true); }}
-                      className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteNews(news.id, news.title)}
-                      className="p-2 text-accent hover:bg-accent/10 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredNews.length === 0 && (
-              <div className="text-center py-12">
-                <AlertCircle className="mx-auto text-muted-foreground mb-4" size={40} />
-                <p className="text-muted-foreground">No news found</p>
-              </div>
-            )}
-          </motion.div>
+          <NewsTab 
+            newsItems={newsItems}
+            onSaveNews={handleSaveNews}
+            onDeleteNews={handleDeleteNews}
+          />
         )}
 
-        {/* Join Requests Tab */}
-        {activeTab === "joinRequests" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Join Requests</h2>
-              <button 
-                onClick={fetchJoinRequests}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Search size={18} />
-                Refresh
-              </button>
-            </div>
+        {activeTab === "joinRequests" && <JoinRequestsTab onRefresh={fetchJoinRequests} />}
 
-            {isLoadingRequests ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : joinRequests.length === 0 ? (
-              <div className="text-center py-12 bg-card rounded-xl border border-border">
-                <UserPlus className="mx-auto text-muted-foreground mb-4" size={40} />
-                <p className="text-muted-foreground">No join requests yet</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {joinRequests.map((request) => (
-                  <div 
-                    key={request.id} 
-                    className={`bg-card rounded-xl p-5 border transition-all hover:shadow-md ${
-                      request.status === "PENDING" 
-                        ? "border-l-4 border-l-trojan-gold" 
-                        : request.status === "ACCEPTED"
-                        ? "border-l-4 border-l-primary"
-                        : "border-l-4 border-l-muted opacity-60"
-                    }`}
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-start gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h4 className="font-semibold text-foreground text-lg">{request.name}</h4>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                            request.status === "PENDING" 
-                              ? "bg-trojan-gold/20 text-trojan-gold-dark"
-                              : request.status === "ACCEPTED"
-                              ? "bg-primary/20 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          }`}>
-                            {request.status}
-                          </span>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-3">
-                          <a href={`mailto:${request.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                            <Mail size={14} />
-                            {request.email}
-                          </a>
-                          {request.phone && (
-                            <a href={`tel:${request.phone}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                              <Phone size={14} />
-                              {request.phone}
-                            </a>
-                          )}
-                          <span className="flex items-center gap-1.5">
-                            <Calendar size={14} />
-                            {formatDate(request.createdAt)}
-                          </span>
-                        </div>
-
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-sm text-muted-foreground">
-                            <span className="font-semibold text-foreground">Message: </span>
-                            {request.message || "No message provided"}
-                          </p>
-                        </div>
-                      </div>
-
-                      {request.status === "PENDING" && (
-                        <div className="flex gap-2 lg:flex-col lg:w-32">
-                          <button
-                            onClick={() => handleAcceptRequest(request.id)}
-                            className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-                          >
-                            <Check size={16} />
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => handleDeclineRequest(request.id)}
-                            className="flex-1 flex items-center justify-center gap-2 bg-accent text-accent-foreground px-4 py-2 rounded-lg font-semibold hover:bg-trojan-red-dark transition-colors"
-                          >
-                            <X size={16} />
-                            Decline
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === "settings" && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-foreground">Settings</h2>
-              <button
-                onClick={handleSaveSettings}
-                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
-              >
-                <Save size={18} />
-                Save Settings
-              </button>
-            </div>
-
-            <div className="grid gap-6">
-              {/* Logo Management */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Globe className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Site Logo</h3>
-                </div>
-               
-                <div className="space-y-4">
-                  {/* Current Logo Preview */}
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={logoPreview || settings.siteLogo || "/logo.jpg"} 
-                      alt="Current Logo" 
-                      className="w-20 h-20 rounded-full object-cover border-2 border-border"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground mb-2">Current Logo</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(settings.siteLogo || logoPreview) ? "Custom logo uploaded" : "Using default logo"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Upload Input */}
-                  <div className="flex items-center gap-3">
-                    <label className="flex-1">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleLogoChange}
-                        className="hidden"
-                        id="logo-upload"
-                      />
-                      <label 
-                        htmlFor="logo-upload"
-                        className="input-field flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50"
-                      >
-                        Choose Logo Image
-                      </label>
-                    </label>
-                    
-                    {(settings.siteLogo || logoPreview) && (
-                      <button
-                        onClick={handleRemoveLogo}
-                        className="px-4 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors"
-                      >
-                        Remove Custom Logo
-                      </button>
-                    )}
-                  </div>
-                  
-                  <p className="text-xs text-muted-foreground">
-                    Recommended: Square image, at least 200x200px. Max 2MB. Will be displayed at 48x48px in header.
-                  </p>
-                </div>
-              </div>
-
-              {/* Site Info */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Globe className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Site Information</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Site Title</label>
-                    <input
-                      type="text"
-                      value={settings.siteTitle}
-                      onChange={(e) => setSettings({ ...settings, siteTitle: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Tagline</label>
-                    <input
-                      type="text"
-                      value={settings.siteTagline}
-                      onChange={(e) => setSettings({ ...settings, siteTagline: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-foreground mb-1">Description</label>
-                    <textarea
-                      value={settings.siteDescription}
-                      onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
-                      className="input-field h-24 resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Phone className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Contact Information</h3>
-                </div>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={settings.contactEmail}
-                      onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Phone</label>
-                    <input
-                      type="tel"
-                      value={settings.contactPhone}
-                      onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Address</label>
-                    <input
-                      type="text"
-                      value={settings.contactAddress}
-                      onChange={(e) => setSettings({ ...settings, contactAddress: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Links */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Globe className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Social Media Links</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3">
-                    <Facebook className="text-blue-600" size={20} />
-                    <input
-                      type="url"
-                      placeholder="Facebook URL"
-                      value={settings.socialFacebook}
-                      onChange={(e) => setSettings({ ...settings, socialFacebook: e.target.value })}
-                      className="input-field flex-1"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Twitter className="text-blue-400" size={20} />
-                    <input
-                      type="url"
-                      placeholder="Twitter URL"
-                      value={settings.socialTwitter}
-                      onChange={(e) => setSettings({ ...settings, socialTwitter: e.target.value })}
-                      className="input-field flex-1"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Instagram className="text-pink-600" size={20} />
-                    <input
-                      type="url"
-                      placeholder="Instagram URL"
-                      value={settings.socialInstagram}
-                      onChange={(e) => setSettings({ ...settings, socialInstagram: e.target.value })}
-                      className="input-field flex-1"
-                    />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Youtube className="text-red-600" size={20} />
-                    <input
-                      type="url"
-                      placeholder="YouTube URL"
-                      value={settings.socialYouTube}
-                      onChange={(e) => setSettings({ ...settings, socialYouTube: e.target.value })}
-                      className="input-field flex-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Club Info */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <Heart className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Club Information</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Founded Year</label>
-                    <input
-                      type="text"
-                      value={settings.clubFounded}
-                      onChange={(e) => setSettings({ ...settings, clubFounded: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Stadium Name</label>
-                    <input
-                      type="text"
-                      value={settings.clubStadium}
-                      onChange={(e) => setSettings({ ...settings, clubStadium: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Join Request Settings */}
-              <div className="bg-card rounded-xl p-6 border border-border">
-                <div className="flex items-center gap-3 mb-4">
-                  <UserPlus className="text-primary" size={24} />
-                  <h3 className="font-semibold text-foreground text-lg">Join Request Settings</h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-foreground">Auto-accept requests</p>
-                      <p className="text-sm text-muted-foreground">Automatically accept all join requests</p>
-                    </div>
-                    <button
-                      onClick={() => setSettings({ ...settings, joinAutoAccept: !settings.joinAutoAccept })}
-                      className={`w-14 h-7 rounded-full transition-colors ${
-                        settings.joinAutoAccept ? "bg-primary" : "bg-muted"
-                      }`}
-                    >
-                      <div className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                        settings.joinAutoAccept ? "translate-x-8" : "translate-x-1"
-                      }`} />
-                    </button>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Notification Email</label>
-                    <input
-                      type="email"
-                      placeholder="Email for join request notifications"
-                      value={settings.notifyEmail}
-                      onChange={(e) => setSettings({ ...settings, notifyEmail: e.target.value })}
-                      className="input-field"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+        {activeTab === "settings" && <SettingsTab onSettingsChange={handleSettingsChange} />}
       </main>
     </div>
   );

@@ -1,9 +1,11 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+
 const JOIN_REQUESTS_KEY = "trojans_join_requests";
 const SETTINGS_KEY = "trojans_settings";
 const MATCHES_KEY = "trojans_matches";
 const STATS_KEY = "trojans_stats";
 
-interface JoinRequest {
+export interface JoinRequest {
   id: number;
   name: string;
   email: string;
@@ -13,7 +15,7 @@ interface JoinRequest {
   createdAt: string;
 }
 
-interface Settings {
+export interface Settings {
   siteTitle: string;
   siteTagline: string;
   siteDescription: string;
@@ -49,16 +51,6 @@ const defaultSettings: Settings = {
   notifyEmail: "",
 };
 
-interface JoinRequest {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-  status: "PENDING" | "ACCEPTED" | "DECLINED";
-  createdAt: string;
-}
-
 interface AuthState {
   isAuthenticated: boolean;
   token: string | null;
@@ -88,91 +80,46 @@ export const clearStoredAuth = (): void => {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 };
 
-const generateId = (): number => {
-  return Date.now();
-};
-
-const getStoredJoinRequests = (): JoinRequest[] => {
-  try {
-    const stored = localStorage.getItem(JOIN_REQUESTS_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error("Failed to parse join requests");
-  }
-  return [];
-};
-
-const saveJoinRequests = (requests: JoinRequest[]): void => {
-  localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(requests));
-};
-
-interface SubmitRequestData {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}
-
-interface Result {
-  success: boolean;
-  error?: string;
-}
-
-export const submitJoinRequestLocal = async (data: SubmitRequestData): Promise<Result> => {
-  const requests = getStoredJoinRequests();
-  
-  const newRequest: JoinRequest = {
-    id: generateId(),
-    name: data.name,
-    email: data.email,
-    phone: data.phone,
-    message: data.message,
-    status: "PENDING",
-    createdAt: new Date().toISOString(),
+// API helper
+const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const token = getToken();
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
   };
   
-  requests.push(newRequest);
-  saveJoinRequests(requests);
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
   
-  return { success: true };
-};
-
-export const getAllJoinRequests = (): JoinRequest[] => {
-  return getStoredJoinRequests();
-};
-
-export const acceptJoinRequest = (id: number): void => {
-  const requests = getStoredJoinRequests();
-  const idx = requests.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    requests[idx].status = "ACCEPTED";
-    saveJoinRequests(requests);
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: "Request failed" }));
+    throw new Error(error.error || `HTTP ${response.status}`);
   }
+  
+  return response.json();
 };
 
-export const declineJoinRequest = (id: number): void => {
-  const requests = getStoredJoinRequests();
-  const idx = requests.findIndex(r => r.id === id);
-  if (idx !== -1) {
-    requests[idx].status = "DECLINED";
-    saveJoinRequests(requests);
-  }
-};
-
-export const login = async (username: string, password: string): Promise<Result> => {
-  if (username === "admin" && password === "admin123") {
+export const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const data = await apiRequest("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    
     const auth: AuthState = {
       isAuthenticated: true,
-      token: "local-token-" + Date.now(),
-      username: username,
-      role: "ADMIN",
+      token: data.token,
+      username: data.username || username,
+      role: data.role || "ADMIN",
     };
     setStoredAuth(auth);
     return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Login failed" };
   }
-  return { success: false, error: "Invalid credentials" };
 };
 
 export const logout = (): void => {
@@ -200,36 +147,64 @@ export const isAdmin = (): boolean => {
   return auth.role === "ADMIN";
 };
 
-export const getSettings = (): Settings => {
+// ===== SETTINGS =====
+export const getSettings = async (): Promise<Settings> => {
   try {
-    const stored = localStorage.getItem(SETTINGS_KEY);
-    if (stored) {
-      return { ...defaultSettings, ...JSON.parse(stored) };
+    const settingsArray = await apiRequest("/settings");
+    const settingsMap: Partial<Settings> = {};
+    settingsArray.forEach((s: any) => {
+      (settingsMap as any)[s.settingKey] = s.settingValue;
+    });
+    return { ...defaultSettings, ...settingsMap };
+  } catch (e) {
+    // Fallback to localStorage
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
+    } catch (e) { }
+    return defaultSettings;
+  }
+};
+
+export const saveSettings = async (settings: Settings): Promise<void> => {
+  try {
+    // Save each setting to backend
+    for (const [key, value] of Object.entries(settings)) {
+      await apiRequest("/settings", {
+        method: "POST",
+        body: JSON.stringify({ settingKey: key, settingValue: String(value) }),
+      });
     }
   } catch (e) {
-    console.error("Failed to parse settings");
+    // Fallback to localStorage
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
-  return defaultSettings;
 };
 
-export const saveSettings = (settings: Settings): void => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-};
-
-export const updateSettings = (updates: Partial<Settings>): Settings => {
-  const current = getSettings();
+export const updateSettings = async (updates: Partial<Settings>): Promise<Settings> => {
+  const current = await getSettings();
   const updated = { ...current, ...updates };
-  saveSettings(updated);
+  await saveSettings(updated);
   return updated;
 };
 
-export const getSiteLogo = (): string => {
-  const settings = getSettings();
+export const getSiteLogo = async (): Promise<string> => {
+  const settings = await getSettings();
   return settings.siteLogo || "/logo.jpg";
 };
 
-// ===== MATCHES FUNCTIONS =====
-interface Match {
+// ===== PLAYERS (from backend) =====
+export const getPlayers = async (): Promise<any[]> => {
+  try {
+    return await apiRequest("/players");
+  } catch (e) {
+    console.error("Failed to fetch players from API");
+    return [];
+  }
+};
+
+// ===== MATCHES (from backend) =====
+export interface Match {
   id: number;
   date: string;
   time: string;
@@ -242,52 +217,113 @@ interface Match {
   opponentScore?: number;
   isHome: boolean;
   status: "scheduled" | "completed" | "live";
+  playerIds?: string;
 }
 
-const defaultMatches: Match[] = [
-  { id: 1, date: "May 10, 2026", time: "3:00 PM", opponent: "Kenya Prisons", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", status: "scheduled", isHome: true },
-  { id: 2, date: "May 17, 2026", time: "4:00 PM", opponent: "Embu RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Embu Stadium", competition: "Central Kenya Rugby", status: "scheduled", isHome: false },
-  { id: 3, date: "May 24, 2026", time: "3:00 PM", opponent: "Chuka Vikings", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", status: "scheduled", isHome: true },
-  { id: 4, date: "May 31, 2026", time: "2:30 PM", opponent: "Meru University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Meru University Ground", competition: "Central Kenya Rugby", status: "scheduled", isHome: false },
-  { id: 5, date: "April 12, 2026", time: "3:00 PM", opponent: "MKU Thika", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", result: "W", trojansScore: 24, opponentScore: 12, status: "completed", isHome: true },
-  { id: 6, date: "April 5, 2026", time: "4:00 PM", opponent: "Meru RFC", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Meru Stadium", competition: "Central Kenya Rugby", result: "W", trojansScore: 18, opponentScore: 15, status: "completed", isHome: false },
-  { id: 7, date: "March 29, 2026", time: "3:00 PM", opponent: "Tharaka University", opponentLogo: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&q=80", venue: "Murang'a Sports Complex", competition: "Central Kenya Rugby", result: "W", trojansScore: 32, opponentScore: 8, status: "completed", isHome: true },
-];
-
-export const getMatches = (): Match[] => {
+export const getMatches = async (): Promise<Match[]> => {
   try {
-    const stored = localStorage.getItem(MATCHES_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch (e) { console.error("Failed to parse matches"); }
-  return defaultMatches;
-};
-
-export const saveMatches = (matches: Match[]): void => {
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
-};
-
-export const addMatch = (match: Omit<Match, "id">): void => {
-  const matches = getMatches();
-  const newMatch = { ...match, id: Date.now() };
-  matches.push(newMatch);
-  saveMatches(matches);
-};
-
-export const updateMatch = (id: number, updates: Partial<Match>): void => {
-  const matches = getMatches();
-  const idx = matches.findIndex(m => m.id === id);
-  if (idx !== -1) {
-    matches[idx] = { ...matches[idx], ...updates };
-    saveMatches(matches);
+    return await apiRequest("/matches");
+  } catch (e) {
+    // Fallback to localStorage
+    try {
+      const stored = localStorage.getItem(MATCHES_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) { }
+    return [];
   }
 };
 
-export const deleteMatch = (id: number): void => {
-  const matches = getMatches().filter(m => m.id !== id);
-  saveMatches(matches);
+export const saveMatch = async (match: Omit<Match, "id">): Promise<Match> => {
+  return await apiRequest("/matches", {
+    method: "POST",
+    body: JSON.stringify(match),
+  });
 };
 
-// ===== PLAYER STATS FUNCTIONS =====
+export const updateMatch = async (id: number, updates: Partial<Match>): Promise<Match> => {
+  return await apiRequest(`/matches/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
+};
+
+export const deleteMatch = async (id: number): Promise<void> => {
+  await apiRequest(`/matches/${id}`, { method: "DELETE" });
+};
+
+// ===== JOIN REQUESTS =====
+export const submitJoinRequest = async (data: {
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+}): Promise<{ success: boolean; error?: string }> => {
+  try {
+    await apiRequest("/join-requests", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return { success: true };
+  } catch (error) {
+    // Fallback to localStorage
+    const requests = getStoredJoinRequests();
+    const newRequest = {
+      id: Date.now(),
+      ...data,
+      status: "PENDING" as const,
+      createdAt: new Date().toISOString(),
+    };
+    requests.push(newRequest);
+    localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(requests));
+    return { success: true };
+  }
+};
+
+const getStoredJoinRequests = (): JoinRequest[] => {
+  try {
+    const stored = localStorage.getItem(JOIN_REQUESTS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) { }
+  return [];
+};
+
+export const getAllJoinRequests = async (): Promise<JoinRequest[]> => {
+  try {
+    return await apiRequest("/join-requests");
+  } catch (e) {
+    return getStoredJoinRequests();
+  }
+};
+
+export const acceptJoinRequest = async (id: number): Promise<void> => {
+  try {
+    await apiRequest(`/join-requests/${id}/accept`, { method: "PUT" });
+  } catch (e) {
+    // Fallback
+    const requests = getStoredJoinRequests();
+    const idx = requests.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      requests[idx].status = "ACCEPTED";
+      localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(requests));
+    }
+  }
+};
+
+export const declineJoinRequest = async (id: number): Promise<void> => {
+  try {
+    await apiRequest(`/join-requests/${id}/decline`, { method: "PUT" });
+  } catch (e) {
+    // Fallback
+    const requests = getStoredJoinRequests();
+    const idx = requests.findIndex(r => r.id === id);
+    if (idx !== -1) {
+      requests[idx].status = "DECLINED";
+      localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(requests));
+    }
+  }
+};
+
+// ===== PLAYER STATS =====
 export interface PlayerStat {
   id: number;
   name: string;
@@ -305,46 +341,37 @@ export interface PlayerStat {
   redCards: number;
 }
 
-const defaultStats: PlayerStat[] = [
-  { id: 1, name: "Andre Obure", position: "Prop", appearances: 12, tries: 3, conversions: 0, penalties: 0, dropGoals: 0, points: 15, tackles: 145, turnovers: 12, manOfMatch: 2, yellowCards: 1, redCards: 0 },
-  { id: 2, name: "Steve Odongo", position: "Hooker", appearances: 12, tries: 4, conversions: 0, penalties: 0, dropGoals: 0, points: 20, tackles: 132, turnovers: 18, manOfMatch: 3, yellowCards: 0, redCards: 0 },
-  { id: 7, name: "Simon Koigi", position: "Flanker", appearances: 11, tries: 5, conversions: 0, penalties: 0, dropGoals: 0, points: 25, tackles: 156, turnovers: 22, manOfMatch: 4, yellowCards: 1, redCards: 0 },
-  { id: 9, name: "James Waithaka", position: "Scrum-Half", appearances: 12, tries: 6, conversions: 0, penalties: 0, dropGoals: 0, points: 30, tackles: 89, turnovers: 45, manOfMatch: 5, yellowCards: 0, redCards: 0 },
-  { id: 10, name: "Sam Nyanga", position: "Fly-Half", appearances: 12, tries: 4, conversions: 28, penalties: 15, dropGoals: 3, points: 127, tackles: 76, turnovers: 12, manOfMatch: 6, yellowCards: 0, redCards: 0 },
-  { id: 12, name: "Cornelius Kiptum", position: "Centre", appearances: 11, tries: 7, conversions: 0, penalties: 0, dropGoals: 0, points: 35, tackles: 95, turnovers: 8, manOfMatch: 3, yellowCards: 0, redCards: 0 },
-  { id: 14, name: "Brian Ireri", position: "Wing", appearances: 10, tries: 8, conversions: 0, penalties: 0, dropGoals: 0, points: 40, tackles: 45, turnovers: 6, manOfMatch: 4, yellowCards: 0, redCards: 0 },
-  { id: 15, name: "Brian Selete", position: "Full-Back", appearances: 12, tries: 5, conversions: 0, penalties: 0, dropGoals: 0, points: 25, tackles: 68, turnovers: 15, manOfMatch: 3, yellowCards: 1, redCards: 0 },
-];
-
-export const getPlayerStats = (): PlayerStat[] => {
+export const getPlayerStats = async (): Promise<PlayerStat[]> => {
   try {
+    // This would need a backend endpoint - for now use localStorage
     const stored = localStorage.getItem(STATS_KEY);
     if (stored) return JSON.parse(stored);
-  } catch (e) { console.error("Failed to parse stats"); }
-  return defaultStats;
+  } catch (e) { }
+  return [];
 };
 
-export const savePlayerStats = (stats: PlayerStat[]): void => {
+export const savePlayerStats = async (stats: PlayerStat[]): Promise<void> => {
   localStorage.setItem(STATS_KEY, JSON.stringify(stats));
 };
 
-export const updatePlayerStat = (id: number, updates: Partial<PlayerStat>): void => {
-  const stats = getPlayerStats();
+export const updatePlayerStat = async (id: number, updates: Partial<PlayerStat>): Promise<void> => {
+  const stats = await getPlayerStats();
   const idx = stats.findIndex(s => s.id === id);
   if (idx !== -1) {
     stats[idx] = { ...stats[idx], ...updates };
-    savePlayerStats(stats);
+    await savePlayerStats(stats);
   }
 };
 
-export const addPlayerStat = (stat: Omit<PlayerStat, "id">): void => {
-  const stats = getPlayerStats();
+export const addPlayerStat = async (stat: Omit<PlayerStat, "id">): Promise<void> => {
+  const stats = await getPlayerStats();
   const newStat = { ...stat, id: Date.now() };
   stats.push(newStat);
-  savePlayerStats(stats);
+  await savePlayerStats(stats);
 };
 
-export const deletePlayerStat = (id: number): void => {
-  const stats = getPlayerStats().filter(s => s.id !== id);
-  savePlayerStats(stats);
+export const deletePlayerStat = async (id: number): Promise<void> => {
+  const stats = await getPlayerStats();
+  const filtered = stats.filter(s => s.id !== id);
+  await savePlayerStats(filtered);
 };

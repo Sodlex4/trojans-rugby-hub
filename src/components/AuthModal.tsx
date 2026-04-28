@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { submitJoinRequestLocal } from "@/lib/auth";
+import { submitJoinRequest } from "@/lib/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
     setIsSubmitting(true);
     try {
-      const result = await submitJoinRequestLocal(joinForm);
+      const result = await submitJoinRequest(joinForm);
       
       if (result.success) {
         setShowSuccess(true);
