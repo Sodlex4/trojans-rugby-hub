@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, Edit2, Trash2, Users, Newspaper, Settings, 
-  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook, Bell, Clock
+  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook, Bell, Clock, Trophy, Target, Shield, CalendarDays
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -11,7 +11,9 @@ import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
 import { 
   login, logout, isAuthenticated, isAdmin,
   getAllJoinRequests, acceptJoinRequest, declineJoinRequest,
-  getSettings, saveSettings
+  getSettings, saveSettings,
+  getMatches, saveMatches, addMatch, updateMatch, deleteMatch,
+  getPlayerStats, savePlayerStats, addPlayerStat, updatePlayerStat, deletePlayerStat, type PlayerStat
 } from "@/lib/auth";
 import heroSlide5 from "@/assets/hero-slide-5.jpg";
 
@@ -40,7 +42,7 @@ const AdminPage = () => {
   
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(initialNewsItems);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "players" | "news" | "joinRequests" | "settings">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "players" | "matches" | "stats" | "news" | "joinRequests" | "settings">("dashboard");
   const [editingPlayer, setEditingPlayer] = useState<Partial<TeamMember> | null>(null);
   const [editingNews, setEditingNews] = useState<Partial<NewsItem> | null>(null);
   const [showPlayerForm, setShowPlayerForm] = useState(false);
@@ -63,6 +65,12 @@ const AdminPage = () => {
 
   // Settings state
   const [settings, setSettings] = useState(getSettings());
+  const [matches, setMatches] = useState(getMatches());
+  const [playerStats, setPlayerStats] = useState(getPlayerStats());
+  const [showMatchForm, setShowMatchForm] = useState(false);
+  const [showStatForm, setShowStatForm] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<any>(null);
+  const [editingStat, setEditingStat] = useState<PlayerStat | null>(null);
 
   // Real-time polling for join requests (every 30 seconds)
   useEffect(() => {
@@ -361,6 +369,8 @@ const AdminPage = () => {
             {[
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
               { id: "players", label: "Players", icon: Users },
+              { id: "matches", label: "Matches", icon: CalendarDays },
+              { id: "stats", label: "Stats", icon: Trophy },
               { id: "news", label: "News", icon: Newspaper },
               { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: stats.pendingRequests, hasNotification: hasNewNotification },
               { id: "settings", label: "Settings", icon: Settings },
@@ -732,6 +742,222 @@ const AdminPage = () => {
                 <p className="text-muted-foreground">No players found</p>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* Matches Tab */}
+        {activeTab === "matches" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Match Management</h2>
+              <button 
+                onClick={() => { setEditingMatch({ date: "", time: "", opponent: "", venue: "", competition: "", status: "scheduled", isHome: true, trojansScore: 0, opponentScore: 0 }); setShowMatchForm(true); }} 
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
+              >
+                <Plus size={18} />
+                Add Match
+              </button>
+            </div>
+
+            {showMatchForm && (
+              <motion.div 
+                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div 
+                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                >
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    {editingMatch?.id ? "Edit Match" : "Add New Match"}
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Date *</label>
+                        <input type="text" placeholder="May 10, 2026" value={editingMatch?.date || ""} onChange={(e) => setEditingMatch({ ...editingMatch, date: e.target.value })} className="input-field" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Time *</label>
+                        <input type="text" placeholder="3:00 PM" value={editingMatch?.time || ""} onChange={(e) => setEditingMatch({ ...editingMatch, time: e.target.value })} className="input-field" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Opponent *</label>
+                      <input type="text" placeholder="Kisumu RFC" value={editingMatch?.opponent || ""} onChange={(e) => setEditingMatch({ ...editingMatch, opponent: e.target.value })} className="input-field" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Venue *</label>
+                        <input type="text" placeholder="Murang'a Sports Complex" value={editingMatch?.venue || ""} onChange={(e) => setEditingMatch({ ...editingMatch, venue: e.target.value })} className="input-field" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Competition *</label>
+                        <input type="text" placeholder="Kenya Cup" value={editingMatch?.competition || ""} onChange={(e) => setEditingMatch({ ...editingMatch, competition: e.target.value })} className="input-field" />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Result</label>
+                        <select value={editingMatch?.result || ""} onChange={(e) => setEditingMatch({ ...editingMatch, result: e.target.value })} className="input-field">
+                          <option value="">Scheduled</option>
+                          <option value="W">Win</option>
+                          <option value="L">Loss</option>
+                          <option value="D">Draw</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Status</label>
+                        <select value={editingMatch?.status || "scheduled"} onChange={(e) => setEditingMatch({ ...editingMatch, status: e.target.value })} className="input-field">
+                          <option value="scheduled">Scheduled</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Our Score</label>
+                        <input type="number" value={editingMatch?.trojansScore || 0} onChange={(e) => setEditingMatch({ ...editingMatch, trojansScore: parseInt(e.target.value) })} className="input-field" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Opponent Score</label>
+                        <input type="number" value={editingMatch?.opponentScore || 0} onChange={(e) => setEditingMatch({ ...editingMatch, opponentScore: parseInt(e.target.value) })} className="input-field" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Home/Away</label>
+                        <select value={editingMatch?.isHome ? "true" : "false"} onChange={(e) => setEditingMatch({ ...editingMatch, isHome: e.target.value === "true" })} className="input-field">
+                          <option value="true">Home</option>
+                          <option value="false">Away</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={() => { setShowMatchForm(false); setEditingMatch(null); }} className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80">Cancel</button>
+                    <button onClick={() => { if (editingMatch?.id) { updateMatch(editingMatch.id, editingMatch); } else { addMatch(editingMatch); } setShowMatchForm(false); setEditingMatch(null); setMatches(getMatches()); toast.success("Match saved!"); }} className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark">Save Match</button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            <div className="space-y-4">
+              {matches.map((match) => (
+                <div key={match.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${match.result === "W" ? "bg-primary" : match.result === "L" ? "bg-accent" : "bg-muted"}`}>
+                      <Trophy size={20} className={match.result === "W" ? "text-primary-foreground" : "text-foreground"} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{match.date} - {match.competition}</p>
+                      <p className="text-sm text-muted-foreground">{match.opponent} @ {match.venue}</p>
+                      {match.status === "completed" && <p className="text-sm font-bold text-primary">{match.trojansScore} - {match.opponentScore} ({match.result})</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { setEditingMatch(match); setShowMatchForm(true); }} className="p-2 text-primary hover:bg-primary/10 rounded-lg"><Edit2 size={18} /></button>
+                    <button onClick={() => { if (confirm("Delete this match?")) { deleteMatch(match.id); setMatches(getMatches()); toast.success("Match deleted"); } }} className="p-2 text-accent hover:bg-accent/10 rounded-lg"><Trash2 size={18} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Stats Tab */}
+        {activeTab === "stats" && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-foreground">Player Stats Management</h2>
+              <button 
+                onClick={() => { setEditingStat({ id: 0, name: "", position: "", appearances: 0, tries: 0, conversions: 0, penalties: 0, dropGoals: 0, points: 0, tackles: 0, turnovers: 0, manOfMatch: 0, yellowCards: 0, redCards: 0 }); setShowStatForm(true); }} 
+                className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark transition-colors"
+              >
+                <Plus size={18} />
+                Add Player Stats
+              </button>
+            </div>
+
+            {showStatForm && (
+              <motion.div 
+                className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <motion.div 
+                  className="bg-card rounded-2xl w-full max-w-lg p-6 my-8 shadow-2xl max-h-[80vh] overflow-y-auto"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                >
+                  <h3 className="text-xl font-bold text-foreground mb-4">
+                    {editingStat?.id ? "Edit Player Stats" : "Add Player Stats"}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-foreground mb-1">Player Name *</label>
+                      <input type="text" placeholder="John Doe" value={editingStat?.name || ""} onChange={(e) => setEditingStat({ ...editingStat, name: e.target.value })} className="input-field" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-foreground mb-1">Position *</label>
+                      <select value={editingStat?.position || ""} onChange={(e) => setEditingStat({ ...editingStat, position: e.target.value })} className="input-field">
+                        <option value="">Select Position</option>
+                        {positions.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Appearances</label><input type="number" value={editingStat?.appearances || 0} onChange={(e) => setEditingStat({ ...editingStat, appearances: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Tries</label><input type="number" value={editingStat?.tries || 0} onChange={(e) => setEditingStat({ ...editingStat, tries: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Conversions</label><input type="number" value={editingStat?.conversions || 0} onChange={(e) => setEditingStat({ ...editingStat, conversions: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Penalties</label><input type="number" value={editingStat?.penalties || 0} onChange={(e) => setEditingStat({ ...editingStat, penalties: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Drop Goals</label><input type="number" value={editingStat?.dropGoals || 0} onChange={(e) => setEditingStat({ ...editingStat, dropGoals: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Points</label><input type="number" value={editingStat?.points || 0} onChange={(e) => setEditingStat({ ...editingStat, points: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Tackles</label><input type="number" value={editingStat?.tackles || 0} onChange={(e) => setEditingStat({ ...editingStat, tackles: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Turnovers</label><input type="number" value={editingStat?.turnovers || 0} onChange={(e) => setEditingStat({ ...editingStat, turnovers: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Man of Match</label><input type="number" value={editingStat?.manOfMatch || 0} onChange={(e) => setEditingStat({ ...editingStat, manOfMatch: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Yellow Cards</label><input type="number" value={editingStat?.yellowCards || 0} onChange={(e) => setEditingStat({ ...editingStat, yellowCards: parseInt(e.target.value) })} className="input-field" /></div>
+                    <div><label className="block text-sm font-medium text-foreground mb-1">Red Cards</label><input type="number" value={editingStat?.redCards || 0} onChange={(e) => setEditingStat({ ...editingStat, redCards: parseInt(e.target.value) })} className="input-field" /></div>
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button onClick={() => { setShowStatForm(false); setEditingStat(null); }} className="flex-1 bg-muted text-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-muted/80">Cancel</button>
+                    <button onClick={() => { if (editingStat?.id) { updatePlayerStat(editingStat.id, editingStat); } else { addPlayerStat(editingStat); } setShowStatForm(false); setEditingStat(null); setPlayerStats(getPlayerStats()); toast.success("Stats saved!"); }} className="flex-1 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-trojan-green-dark">Save Stats</button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full bg-card rounded-xl border border-border">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Player</th>
+                    <th className="p-3 text-left text-sm font-medium text-muted-foreground">Position</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Apps</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tries</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Points</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tackles</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">MoM</th>
+                    <th className="p-3 text-center text-sm font-medium text-muted-foreground">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {playerStats.map((stat) => (
+                    <tr key={stat.id} className="border-t border-border hover:bg-muted/30">
+                      <td className="p-3 font-medium text-foreground">{stat.name}</td>
+                      <td className="p-3 text-muted-foreground">{stat.position}</td>
+                      <td className="p-3 text-center text-foreground">{stat.appearances}</td>
+                      <td className="p-3 text-center text-primary font-medium">{stat.tries}</td>
+                      <td className="p-3 text-center text-trojan-gold font-bold">{stat.points}</td>
+                      <td className="p-3 text-center text-foreground">{stat.tackles}</td>
+                      <td className="p-3 text-center text-foreground">{stat.manOfMatch}</td>
+                      <td className="p-3 text-center">
+                        <button onClick={() => { setEditingStat(stat); setShowStatForm(true); }} className="p-1.5 text-primary hover:bg-primary/10 rounded mr-1"><Edit2 size={14} /></button>
+                        <button onClick={() => { if (confirm("Delete this stats entry?")) { deletePlayerStat(stat.id); setPlayerStats(getPlayerStats()); toast.success("Stats deleted"); } }} className="p-1.5 text-accent hover:bg-accent/10 rounded"><Trash2 size={14} /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
         )}
 
