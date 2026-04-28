@@ -4,6 +4,8 @@ import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
 import AboutSection from "@/components/AboutSection";
 import TeamSection from "@/components/TeamSection";
+import Matches from "@/components/Matches";
+import PlayerStats from "@/components/PlayerStats";
 import NewsSection from "@/components/NewsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
@@ -15,10 +17,15 @@ import { heroSlides } from "@/data/images";
 
 const Index = () => {
   const [showJoinModal, setShowJoinModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
   const [teamMembersState, setTeamMembersState] = useState<TeamMember[]>(teamMembers);
   const [newsItemsState, setNewsItemsState] = useState<NewsItem[]>(newsItems);
 
   const scrollToSection = (sectionId: string) => {
+    if (sectionId === "stats") {
+      setShowStatsModal(true);
+      return;
+    }
     document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -46,6 +53,10 @@ const Index = () => {
         teamMembers={teamMembersState}
         onDeletePlayer={handleDeletePlayer}
       />
+
+      <Matches />
+
+      <PlayerStats />
 
       <NewsSection newsItems={newsItemsState} />
 
