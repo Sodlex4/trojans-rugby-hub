@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import heroSlide5 from "@/assets/hero-slide-5.jpg";
 import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
@@ -42,7 +41,7 @@ const Header = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <img src={heroSlide5} alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
+            <img src="/favicon.ico" alt="Trojans Logo" className="h-12 w-12 rounded-full object-cover" />
             <div className="text-primary-foreground">
               <h1 className="text-2xl md:text-3xl font-display font-extrabold uppercase">TROJANS</h1>
               <p className="text-sm tracking-[0.3em] opacity-90">MURANG'A</p>
