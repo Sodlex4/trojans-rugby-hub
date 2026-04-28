@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Plus, Edit2, Trash2, Users, Newspaper, Settings, 
-  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook
+  LayoutDashboard, ArrowLeft, LogOut, Search, UserPlus, Check, X, Mail, Phone, Calendar, Activity, AlertCircle, Save, Globe, Heart, Youtube, Instagram, Twitter, Facebook, Bell, Clock
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -58,9 +58,41 @@ const AdminPage = () => {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [lastRequestCount, setLastRequestCount] = useState(0);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
 
   // Settings state
   const [settings, setSettings] = useState(getSettings());
+
+  // Real-time polling for join requests (every 30 seconds)
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
+    fetchJoinRequests();
+    
+    const interval = setInterval(() => {
+      const currentRequests = getAllJoinRequests();
+      const currentPending = currentRequests.filter((r: JoinRequest) => r.status === "PENDING").length;
+      
+      if (currentPending > lastRequestCount && lastRequestCount > 0) {
+        const newRequests = currentPending - lastRequestCount;
+        toast.success(`🔔 You have ${newRequests} new join request${newRequests > 1 ? 's' : ''}!`, {
+          duration: 5000,
+        });
+        setHasNewNotification(true);
+      }
+      
+      setJoinRequests(currentRequests);
+      setPendingCount(currentPending);
+      setLastRequestCount(currentPending);
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn, lastRequestCount]);
+
+  const handleMarkNotificationSeen = () => {
+    setHasNewNotification(false);
+  };
 
   const handleLogin = async () => {
     if (!loginForm.username || !loginForm.password) {
@@ -330,24 +362,38 @@ const AdminPage = () => {
               { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
               { id: "players", label: "Players", icon: Users },
               { id: "news", label: "News", icon: Newspaper },
-              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: stats.pendingRequests },
+              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: stats.pendingRequests, hasNotification: hasNewNotification },
               { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                onClick={() => {
+                  setActiveTab(tab.id as typeof activeTab);
+                  if (tab.id === "joinRequests") {
+                    handleMarkNotificationSeen();
+                  }
+                }}
                 className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "text-primary-foreground border-primary-foreground bg-white/10"
                     : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:bg-white/5"
                 }`}
               >
-                <tab.icon size={18} />
+                {tab.id === "joinRequests" && (tab.hasNotification || (tab.badge as number) > 0) ? (
+                  <span className="relative">
+                    <tab.icon size={18} />
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-trojan-red rounded-full animate-pulse" />
+                  </span>
+                ) : (
+                  <tab.icon size={18} />
+                )}
                 <span>{tab.label}</span>
                 {tab.id === "players" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{stats.totalPlayers}</span>}
                 {tab.id === "news" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{stats.totalNews}</span>}
-                {tab.id === "joinRequests" && tab.badge > 0 && (
-                  <span className="bg-trojan-red px-2 py-0.5 rounded-full text-xs font-bold">{tab.badge}</span>
+                {tab.id === "joinRequests" && (tab.badge as number) > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab.hasNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>
+                    {tab.badge}
+                  </span>
                 )}
               </button>
             ))}
@@ -415,6 +461,91 @@ const AdminPage = () => {
                 <p className="text-3xl font-bold text-foreground">{stats.pendingRequests}</p>
               </div>
             </div>
+
+            {/* Pending Requests Widget */}
+            {joinRequests.length > 0 && (
+              <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Bell className="text-primary" size={20} />
+                    </div>
+                    <h3 className="font-semibold text-foreground text-lg">Recent Join Requests</h3>
+                  </div>
+                  <button 
+                    onClick={() => { handleMarkNotificationSeen(); setActiveTab("joinRequests"); }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    View All →
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {joinRequests.slice(0, 5).map((request) => (
+                    <div 
+                      key={request.id}
+                      className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
+                        request.status === "PENDING" 
+                          ? "bg-trojan-gold/5 border-trojan-gold/30" 
+                          : request.status === "ACCEPTED"
+                          ? "bg-primary/5 border-primary/30"
+                          : "bg-muted/30 border-border opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <span className="text-primary font-bold">
+                            {request.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{request.name}</p>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock size={12} />
+                            {new Date(request.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {request.status === "PENDING" && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleAcceptRequest(request.id)}
+                            className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
+                            title="Accept"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeclineRequest(request.id)}
+                            className="p-2 bg-accent/10 text-accent rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                            title="Decline"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {request.status !== "PENDING" && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          request.status === "ACCEPTED" 
+                            ? "bg-primary/20 text-primary"
+                            : "bg-muted text-muted-foreground"
+                        }`}>
+                          {request.status}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {pendingCount > 5 && (
+                  <p className="text-center text-sm text-muted-foreground mt-4">
+                    + {pendingCount - 5} more requests
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Quick Actions */}
             <div className="bg-card rounded-xl p-6 border border-border shadow-sm">
