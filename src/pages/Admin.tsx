@@ -61,6 +61,11 @@ const AdminPage = () => {
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [lastRequestCount, setLastRequestCount] = useState(0);
   const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [loginLogo, setLoginLogo] = useState<string>("/logo.jpg");
+
+  useEffect(() => {
+    setLoginLogo(getSiteLogo());
+  }, []);
 
   // Settings state
   const [settings, setSettings] = useState(getSettings());
@@ -70,6 +75,7 @@ const AdminPage = () => {
   const [showStatForm, setShowStatForm] = useState(false);
   const [editingMatch, setEditingMatch] = useState<any>(null);
   const [editingStat, setEditingStat] = useState<PlayerStat | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   // Real-time polling for join requests (every 30 seconds)
   useEffect(() => {
@@ -130,6 +136,34 @@ const AdminPage = () => {
   const handleSaveSettings = () => {
     saveSettings(settings);
     toast.success("Settings saved successfully!");
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setLogoPreview(result);
+      setSettings({ ...settings, siteLogo: result });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setSettings({ ...settings, siteLogo: "" });
   };
 
   // Fetch join requests on mount and when tab changes
@@ -279,7 +313,7 @@ const AdminPage = () => {
         <div className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl border border-border">
           <div className="text-center mb-8">
             <img 
-              src="/logo.jpg" 
+              src={loginLogo} 
               alt="Trojans Logo" 
               className="w-24 h-24 rounded-full object-cover mx-auto mb-4 border-4 border-primary shadow-lg" 
             />
@@ -1211,6 +1245,63 @@ const AdminPage = () => {
             </div>
 
             <div className="grid gap-6">
+              {/* Logo Management */}
+              <div className="bg-card rounded-xl p-6 border border-border">
+                <div className="flex items-center gap-3 mb-4">
+                  <Globe className="text-primary" size={24} />
+                  <h3 className="font-semibold text-foreground text-lg">Site Logo</h3>
+                </div>
+               
+                <div className="space-y-4">
+                  {/* Current Logo Preview */}
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src={logoPreview || settings.siteLogo || "/logo.jpg"} 
+                      alt="Current Logo" 
+                      className="w-20 h-20 rounded-full object-cover border-2 border-border"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Current Logo</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(settings.siteLogo || logoPreview) ? "Custom logo uploaded" : "Using default logo"}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Upload Input */}
+                  <div className="flex items-center gap-3">
+                    <label className="flex-1">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleLogoChange}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      <label 
+                        htmlFor="logo-upload"
+                        className="input-field flex items-center justify-center gap-2 cursor-pointer hover:bg-muted/50"
+                      >
+                        Choose Logo Image
+                      </label>
+                    </label>
+                    
+                    {(settings.siteLogo || logoPreview) && (
+                      <button
+                        onClick={handleRemoveLogo}
+                        className="px-4 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors"
+                      >
+                        Remove Custom Logo
+                      </button>
+                    )}
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">
+                    Recommended: Square image, at least 200x200px. Max 2MB. Will be displayed at 48x48px in header.
+                  </p>
+                </div>
+              </div>
+
               {/* Site Info */}
               <div className="bg-card rounded-xl p-6 border border-border">
                 <div className="flex items-center gap-3 mb-4">

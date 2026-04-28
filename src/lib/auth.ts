@@ -17,6 +17,7 @@ interface Settings {
   siteTitle: string;
   siteTagline: string;
   siteDescription: string;
+  siteLogo: string;
   contactEmail: string;
   contactPhone: string;
   contactAddress: string;
@@ -34,6 +35,7 @@ const defaultSettings: Settings = {
   siteTitle: "Trojans Murang'a RFC",
   siteTagline: "Champions of Central Kenya Rugby",
   siteDescription: "Building champions, fostering community, celebrating excellence in Kenyan rugby.",
+  siteLogo: "",
   contactEmail: "info@trojans.co.ke",
   contactPhone: "+254 700 000 000",
   contactAddress: "Murang'a, Kenya",
@@ -219,6 +221,11 @@ export const updateSettings = (updates: Partial<Settings>): Settings => {
   const updated = { ...current, ...updates };
   saveSettings(updated);
   return updated;
+};
+
+export const getSiteLogo = (): string => {
+  const settings = getSettings();
+  return settings.siteLogo || "/logo.jpg";
 };
 
 // ===== MATCHES FUNCTIONS =====
