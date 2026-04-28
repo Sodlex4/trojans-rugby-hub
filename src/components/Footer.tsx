@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import { Facebook, Twitter, Instagram, Code2 } from "lucide-react";
-
-const socialLinks = [
-  { icon: Facebook, label: "Facebook", href: "https://facebook.com/trojansrugby" },
-  { icon: Twitter, label: "Twitter", href: "https://twitter.com/trojansrugby" },
-  { icon: Instagram, label: "Instagram", href: "https://instagram.com/trojansrugby" },
-];
+import { getSettings } from "@/lib/auth";
 
 const Footer = () => {
+  const settings = getSettings();
+
+  const socialLinks = [
+    { icon: Facebook, label: "Facebook", href: settings.socialFacebook || "https://facebook.com/trojansrugby" },
+    { icon: Twitter, label: "Twitter", href: settings.socialTwitter || "https://twitter.com/trojansrugby" },
+    { icon: Instagram, label: "Instagram", href: settings.socialInstagram || "https://instagram.com/trojansrugby" },
+  ];
 
   return (
     <footer className="bg-foreground text-card py-12">

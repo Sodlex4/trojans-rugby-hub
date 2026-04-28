@@ -1,4 +1,49 @@
 const JOIN_REQUESTS_KEY = "trojans_join_requests";
+const SETTINGS_KEY = "trojans_settings";
+
+interface JoinRequest {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  status: "PENDING" | "ACCEPTED" | "DECLINED";
+  createdAt: string;
+}
+
+interface Settings {
+  siteTitle: string;
+  siteTagline: string;
+  siteDescription: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactAddress: string;
+  socialFacebook: string;
+  socialTwitter: string;
+  socialInstagram: string;
+  socialYouTube: string;
+  clubFounded: string;
+  clubStadium: string;
+  joinAutoAccept: boolean;
+  notifyEmail: string;
+}
+
+const defaultSettings: Settings = {
+  siteTitle: "Trojans Murang'a RFC",
+  siteTagline: "Champions of Central Kenya Rugby",
+  siteDescription: "Trojans Murang'a Rugby Football Club - The pride of Central Kenya. Join our championship-winning team.",
+  contactEmail: "info@trojans.co.ke",
+  contactPhone: "+254 700 000 000",
+  contactAddress: "Murang'a, Kenya",
+  socialFacebook: "https://facebook.com/trojansrugby",
+  socialTwitter: "https://twitter.com/trojansrugby",
+  socialInstagram: "https://instagram.com/trojansrugby",
+  socialYouTube: "https://youtube.com/trojansrugby",
+  clubFounded: "2015",
+  clubStadium: "Murang'a Sports Complex",
+  joinAutoAccept: false,
+  notifyEmail: "",
+};
 
 interface JoinRequest {
   id: number;
@@ -149,4 +194,27 @@ export const getAuthHeaders = (): HeadersInit => {
 export const isAdmin = (): boolean => {
   const auth = getStoredAuth();
   return auth.role === "ADMIN";
+};
+
+export const getSettings = (): Settings => {
+  try {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (stored) {
+      return { ...defaultSettings, ...JSON.parse(stored) };
+    }
+  } catch (e) {
+    console.error("Failed to parse settings");
+  }
+  return defaultSettings;
+};
+
+export const saveSettings = (settings: Settings): void => {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+};
+
+export const updateSettings = (updates: Partial<Settings>): Settings => {
+  const current = getSettings();
+  const updated = { ...current, ...updates };
+  saveSettings(updated);
+  return updated;
 };
