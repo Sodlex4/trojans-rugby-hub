@@ -30,11 +30,11 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByUsername("admin")) {
             User admin = new User();
             admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("trojans2026"));
-            admin.setEmail("admin@trojansrugby.co.ke");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setEmail("admin@trojans.co.ke");
             admin.setRole("ADMIN");
             userRepository.save(admin);
-            log.info("Default admin user created: admin / trojans2026");
+            log.info("Default admin user created: admin / admin123");
         }
         
         // Seed initial players if empty
