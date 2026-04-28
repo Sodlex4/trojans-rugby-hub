@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import HeroSlider from "@/components/HeroSlider";
@@ -17,7 +17,6 @@ import { teamMembers, type TeamMember } from "@/data/team";
 import { newsItems, type NewsItem } from "@/data/news";
 import { heroSlides } from "@/data/images";
 import { Calendar, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
 import { getMatches as getStoredMatches, getPlayerStats as getStoredStats } from "@/lib/auth";
 import { motion } from "framer-motion";
 
@@ -75,13 +74,38 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header scrollToSection={scrollToSection} />
-      <HeroSlider slides={heroSlides} onJoinClick={() => setShowJoinModal(true)} />
-      <AboutSection />
-      <TeamSection teamMembers={teamMembersState} onDeletePlayer={handleDeletePlayer} />
+      
+      {/* Home Section */}
+      <section id="home">
+        <HeroSlider slides={heroSlides} onJoinClick={() => setShowJoinModal(true)} />
+      </section>
+      
+      {/* About Section */}
+      <section id="about">
+        <AboutSection />
+      </section>
+      
+      {/* Team Section */}
+      <section id="team">
+        <TeamSection teamMembers={teamMembersState} onDeletePlayer={handleDeletePlayer} />
+      </section>
+      
+      {/* Matches Section - already has id="matches" in MatchesSection component */}
       <MatchesSection />
+      
+      {/* Stats Section - now has id="stats" in PlayerStats component */}
       <PlayerStats />
-      <NewsSection newsItems={newsItemsState} />
-      <ContactSection />
+      
+      {/* News Section */}
+      <section id="news">
+        <NewsSection newsItems={newsItemsState} />
+      </section>
+      
+      {/* Contact Section */}
+      <section id="contact">
+        <ContactSection />
+      </section>
+      
       <Footer />
       <ScrollToTop />
       <AuthModal isOpen={showJoinModal} onClose={() => setShowJoinModal(false)} />
