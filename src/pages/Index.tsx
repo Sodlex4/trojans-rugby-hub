@@ -24,7 +24,7 @@ const MatchesSection = () => {
   const [activeTab, setActiveTab] = useState<"schedule" | "results" | "table">("schedule");
   const [matches, setMatches] = useState<any[]>([]);
   
-  useEffect(() => { setMatches(getStoredMatches()); }, []);
+  useEffect(() => { getStoredMatches().then(setMatches); }, []);
   
   const upcoming = matches.filter(m => m.status === "scheduled").slice(0, 4);
   const pastResults = matches.filter(m => m.status === "completed").slice(0, 4);
@@ -75,20 +75,14 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header scrollToSection={scrollToSection} />
       
-      {/* Home Section */}
-      <section id="home">
-        <HeroSlider slides={heroSlides} onJoinClick={() => setShowJoinModal(true)} />
-      </section>
+       {/* Home Section */}
+       <HeroSlider slides={heroSlides} onJoinClick={() => setShowJoinModal(true)} />
       
-      {/* About Section */}
-      <section id="about">
-        <AboutSection />
-      </section>
+       {/* About Section */}
+       <AboutSection />
       
-      {/* Team Section */}
-      <section id="team">
-        <TeamSection teamMembers={teamMembersState} onDeletePlayer={handleDeletePlayer} />
-      </section>
+       {/* Team Section */}
+       <TeamSection teamMembers={teamMembersState} onDeletePlayer={handleDeletePlayer} />
       
       {/* Matches Section - already has id="matches" in MatchesSection component */}
       <MatchesSection />
@@ -96,15 +90,11 @@ const Index = () => {
       {/* Stats Section - now has id="stats" in PlayerStats component */}
       <PlayerStats />
       
-      {/* News Section */}
-      <section id="news">
-        <NewsSection newsItems={newsItemsState} />
-      </section>
+       {/* News Section */}
+       <NewsSection newsItems={newsItemsState} />
       
-      {/* Contact Section */}
-      <section id="contact">
-        <ContactSection />
-      </section>
+       {/* Contact Section */}
+       <ContactSection />
       
       <Footer />
       <ScrollToTop />
