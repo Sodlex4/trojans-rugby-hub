@@ -156,11 +156,10 @@ export const leagueTable = [
   { position: 7, team: "Tharaka University", played: 11, won: 5, drawn: 0, lost: 6, pointsFor: 169, pointsAgainst: 168, pointsDifference: 1, bonusPoints: 2, totalPoints: 22 },
   { position: 8, team: "Olive Rugby", played: 12, won: 5, drawn: 0, lost: 7, pointsFor: 272, pointsAgainst: 259, pointsDifference: 13, bonusPoints: -4, totalPoints: 16 },
   { position: 9, team: "Kirinyaga RFC", played: 12, won: 3, drawn: 0, lost: 9, pointsFor: 104, pointsAgainst: 316, pointsDifference: -212, bonusPoints: 1, totalPoints: 13 },
-  { position: 10, team: "Dedan Kimathi Uni.", played: 11, lost: 0 },
-  { position: 11, team: "Karatina University", lost: 0 },
-  { position: 12, team: "Murang'a Trojans", played: 12, won: 2, lost: 10, pointsFor: 133, pointsAgainst: 299, pointsDifference: -166, bonusPoints: -7, totalPoints: 1 },
+  { position: 10, team: "Dedan Kimathi Uni.", played: 11, won: 0, lost: 11, pointsFor: 35, pointsAgainst: 598, pointsDifference: -563, bonusPoints: -11, totalPoints: -7 },
+  { position: 11, team: "Karatina University", played: 12, won: 2, lost: 10, pointsFor: 133, pointsAgainst: 299, pointsDifference: -166, bonusPoints: -7, totalPoints: 1 },
+  { position: 12, team: "Murang'a Trojans", played: 12, won: 2, lost: 10, pointsFor: 101, pointsAgainst: 225, pointsDifference: -124, bonusPoints: -4, totalPoints: 4 },
   { position: 13, team: "Kiambu Rugby", played: 12, won: 2, lost: 10, pointsFor: 90, pointsAgainst: 242, pointsDifference: -152, bonusPoints: -4, totalPoints: 4 },
-  { position: 14, team: "Kisumu RFC", played: 12, won: 1, lost: 11, pointsFor: 35, pointsAgainst: 598, pointsDifference: -563, bonusPoints: -11, totalPoints: -7 },
 ];
 
 export const getTopScorers = () => 

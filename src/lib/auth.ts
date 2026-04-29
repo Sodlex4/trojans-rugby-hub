@@ -251,6 +251,44 @@ export const deleteMatch = async (id: number): Promise<void> => {
   await apiRequest(`/matches/${id}`, { method: "DELETE" });
 };
 
+// ===== LEAGUE TABLE (from backend) =====
+export interface LeagueTeam {
+  position: number;
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  pointsDifference: number;
+  bonusPoints: number;
+  totalPoints: number;
+}
+
+export const getLeagueTable = async (): Promise<LeagueTeam[]> => {
+  try {
+    return await apiRequest("/league-table");
+  } catch (e) {
+    // Fallback to localStorage
+    try {
+      const stored = localStorage.getItem("trojans_league_table");
+      if (stored) return JSON.parse(stored);
+    } catch (e) { }
+    return [];
+  }
+};
+
+export const saveLeagueTable = async (table: LeagueTeam[]): Promise<void> => {
+  localStorage.setItem("trojans_league_table", JSON.stringify(table));
+  try {
+    await apiRequest("/league-table", {
+      method: "POST",
+      body: JSON.stringify(table),
+    });
+  } catch (e) { }
+};
+
 // ===== JOIN REQUESTS =====
 export const submitJoinRequest = async (data: {
   name: string;
