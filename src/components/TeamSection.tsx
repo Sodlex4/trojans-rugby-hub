@@ -250,29 +250,29 @@ const TeamSection = ({ teamMembers, isAdmin, onEditPlayer, onDeletePlayer }: Tea
                   {/* Jersey Number */}
                   <div className="jersey-number">{member.number}</div>
 
-                  {/* Admin Controls */}
-                  {isAdmin && (
-                    <motion.div
-                      className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      <button
-                        onClick={() => onEditPlayer(member)}
-                        className="bg-primary text-primary-foreground p-2 rounded-full 
-                                 hover:bg-trojan-green-dark transition-colors shadow-lg"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => onDeletePlayer(member.id)}
-                        className="bg-accent text-accent-foreground p-2 rounded-full 
-                                 hover:bg-trojan-red-dark transition-colors shadow-lg"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </motion.div>
-                  )}
+                   {/* Admin Controls - Always visible on mobile, hover on desktop */}
+                   {isAdmin && (
+                     <div className="absolute top-4 left-4 flex gap-2">
+                       <button
+                         onClick={() => onEditPlayer(member)}
+                         className="bg-primary text-primary-foreground p-2 rounded-full 
+                                  hover:bg-trojan-green-dark transition-colors shadow-lg
+                                  active:scale-95 touch-manipulation"
+                         aria-label="Edit player"
+                       >
+                         <Edit2 size={16} />
+                       </button>
+                       <button
+                         onClick={() => onDeletePlayer(member.id)}
+                         className="bg-accent text-accent-foreground p-2 rounded-full 
+                                  hover:bg-trojan-red-dark transition-colors shadow-lg
+                                  active:scale-95 touch-manipulation"
+                         aria-label="Delete player"
+                       >
+                         <Trash2 size={16} />
+                       </button>
+                     </div>
+                   )}
 
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent 

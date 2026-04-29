@@ -167,20 +167,22 @@ const PlayersTab = ({ players, onSavePlayer, onDeletePlayer }: PlayersTabProps) 
                 alt={player.name}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-2 right-2 flex gap-1">
-                <button
-                  onClick={() => handleEdit(player)}
-                  className="p-1.5 bg-primary/90 text-primary-foreground rounded-lg hover:bg-primary transition-colors"
-                >
-                  <Edit2 size={14} />
-                </button>
-                <button
-                  onClick={() => onDeletePlayer(player.id, player.name)}
-                  className="p-1.5 bg-accent/90 text-accent-foreground rounded-lg hover:bg-accent transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+               <div className="absolute top-2 right-2 flex gap-1">
+                 <button
+                   onClick={() => handleEdit(player)}
+                   className="p-2 bg-primary/90 text-primary-foreground rounded-lg hover:bg-primary transition-colors active:scale-95 touch-manipulation"
+                   aria-label="Edit player"
+                 >
+                   <Edit2 size={16} />
+                 </button>
+                 <button
+                   onClick={() => onDeletePlayer(player.id, player.name)}
+                   className="p-2 bg-accent/90 text-accent-foreground rounded-lg hover:bg-accent transition-colors active:scale-95 touch-manipulation"
+                   aria-label="Delete player"
+                 >
+                   <Trash2 size={16} />
+                 </button>
+               </div>
               {player.number && (
                 <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
                   {player.number}
