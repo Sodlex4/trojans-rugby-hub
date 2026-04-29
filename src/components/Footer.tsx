@@ -1,9 +1,16 @@
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Facebook, Twitter, Instagram, Code2 } from "lucide-react";
 import { getSettings } from "@/lib/auth";
+import { useState, useEffect, useRef } from "react";
 
 const Footer = () => {
-  const settings = getSettings();
+  const [settings, setSettings] = useState<any>({});
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    getSettings().then(setSettings);
+  }, []);
 
   const socialLinks = [
     { icon: Facebook, label: "Facebook", href: settings.socialFacebook || "https://facebook.com/trojansrugby" },
@@ -53,7 +60,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <motion.div
-            className="text-right md:text-right text-center"
+            className="text-center md:text-right"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

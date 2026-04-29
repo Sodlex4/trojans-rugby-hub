@@ -121,7 +121,7 @@ const Header = ({
                   key={item}
                   onClick={() => handleNavClick(item)}
                   className="text-primary-foreground font-semibold text-left uppercase tracking-wide
-                           hover:text-trojan-gold transition-colors"
+                             hover:text-trojan-gold transition-colors py-3 px-4 w-full text-left"
                 >
                   {item}
                 </button>
