@@ -1,5 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
+// Initialize default admin credentials if not present
+if (!localStorage.getItem("trojans_admin_creds")) {
+  localStorage.setItem("trojans_admin_creds", JSON.stringify({
+    username: "admin",
+    password: "trojans2026"
+  }));
+}
+
 const JOIN_REQUESTS_KEY = "trojans_join_requests";
 const SETTINGS_KEY = "trojans_settings";
 const MATCHES_KEY = "trojans_matches";
@@ -108,7 +116,6 @@ export const login = async (username: string, password: string): Promise<{ succe
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
-    
     const auth: AuthState = {
       isAuthenticated: true,
       token: data.token,
@@ -118,6 +125,23 @@ export const login = async (username: string, password: string): Promise<{ succe
     setStoredAuth(auth);
     return { success: true };
   } catch (error) {
+    // Fallback: Check localStorage for admin credentials
+    try {
+      const storedCreds = localStorage.getItem("trojans_admin_creds");
+      if (storedCreds) {
+        const creds = JSON.parse(storedCreds);
+        if (creds.username === username && creds.password === password) {
+          const auth: AuthState = {
+            isAuthenticated: true,
+            token: null,
+            username: username,
+            role: "ADMIN",
+          };
+          setStoredAuth(auth);
+          return { success: true };
+        }
+      }
+    } catch (e) {}
     return { success: false, error: error instanceof Error ? error.message : "Login failed" };
   }
 };
@@ -189,8 +213,20 @@ export const updateSettings = async (updates: Partial<Settings>): Promise<Settin
 };
 
 export const getSiteLogo = async (): Promise<string> => {
-  const settings = await getSettings();
-  return settings.siteLogo || "/logo.jpg";
+  try {
+    const settings = await getSettings();
+    return settings.siteLogo || "/logo.jpg";
+  } catch (e) {
+    // Fallback to localStorage
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) {
+        const s = JSON.parse(stored);
+        return s.siteLogo || "/logo.jpg";
+      }
+    } catch (e) {}
+    return "/logo.jpg";
+  }
 };
 
 // ===== PLAYERS (from backend) =====
