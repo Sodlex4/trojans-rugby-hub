@@ -34,7 +34,11 @@ const AdminPage = () => {
   const [loginLogo, setLoginLogo] = useState("/logo.jpg");
 
   useEffect(() => {
-    setLoginLogo(getSiteLogo());
+    const fetchLogo = async () => {
+      const logo = await getSiteLogo();
+      setLoginLogo(logo);
+    };
+    fetchLogo();
   }, []);
 
   const handleLoginSuccess = () => {
@@ -111,8 +115,9 @@ const AdminPage = () => {
     }
   };
 
-  const handleSettingsChange = () => {
-    setLoginLogo(getSiteLogo());
+  const handleSettingsChange = async () => {
+    const logo = await getSiteLogo();
+    setLoginLogo(logo);
   };
 
   if (!isLoggedIn) {
