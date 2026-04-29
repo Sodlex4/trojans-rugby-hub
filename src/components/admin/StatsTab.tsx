@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -144,39 +144,85 @@ const StatsTab = () => {
         </motion.div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full bg-card rounded-xl border border-border">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-3 text-left text-sm font-medium text-muted-foreground">Player</th>
-              <th className="p-3 text-left text-sm font-medium text-muted-foreground">Position</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">Apps</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tries</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">Points</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tackles</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">MoM</th>
-              <th className="p-3 text-center text-sm font-medium text-muted-foreground">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {playerStats.map((stat) => (
-              <tr key={stat.id} className="border-t border-border hover:bg-muted/30">
-                <td className="p-3 font-medium text-foreground">{stat.name}</td>
-                <td className="p-3 text-muted-foreground">{stat.position}</td>
-                <td className="p-3 text-center text-foreground">{stat.appearances}</td>
-                <td className="p-3 text-center text-primary font-medium">{stat.tries}</td>
-                <td className="p-3 text-center text-trojan-gold font-bold">{stat.points}</td>
-                <td className="p-3 text-center text-foreground">{stat.tackles}</td>
-                <td className="p-3 text-center text-foreground">{stat.manOfMatch}</td>
-                <td className="p-3 text-center">
-                  <button onClick={() => handleEdit(stat)} className="p-1.5 text-primary hover:bg-primary/10 rounded mr-1"><Edit2 size={14} /></button>
-                  <button onClick={() => handleDeleteStat(stat.id)} className="p-1.5 text-accent hover:bg-accent/10 rounded"><Trash2 size={14} /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+       {/* Mobile Card Layout */}
+       <div className="block md:hidden space-y-3">
+         {playerStats.map((stat) => (
+           <motion.div
+             key={stat.id}
+             className="bg-card rounded-xl border border-border p-4"
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+           >
+             <div className="flex justify-between items-start mb-3">
+               <div>
+                 <p className="font-bold text-foreground">{stat.name}</p>
+                 <p className="text-sm text-muted-foreground">{stat.position}</p>
+               </div>
+               <div className="flex gap-1">
+                 <button onClick={() => handleEdit(stat)} className="p-2 text-primary hover:bg-primary/10 rounded active:scale-95 touch-manipulation" aria-label="Edit">
+                   <Edit2 size={16} />
+                 </button>
+                 <button onClick={() => handleDeleteStat(stat.id)} className="p-2 text-accent hover:bg-accent/10 rounded active:scale-95 touch-manipulation" aria-label="Delete">
+                   <Trash2 size={16} />
+                 </button>
+               </div>
+             </div>
+             <div className="grid grid-cols-4 gap-2 text-sm">
+               <div className="text-center">
+                 <p className="text-muted-foreground text-xs">Apps</p>
+                 <p className="font-medium text-foreground">{stat.appearances}</p>
+               </div>
+               <div className="text-center">
+                 <p className="text-muted-foreground text-xs">Tries</p>
+                 <p className="font-medium text-primary">{stat.tries}</p>
+               </div>
+               <div className="text-center">
+                 <p className="text-muted-foreground text-xs">Pts</p>
+                 <p className="font-bold text-trojan-gold">{stat.points}</p>
+               </div>
+               <div className="text-center">
+                 <p className="text-muted-foreground text-xs">MoM</p>
+                 <p className="font-medium text-foreground">{stat.manOfMatch}</p>
+               </div>
+             </div>
+           </motion.div>
+         ))}
+       </div>
+
+       {/* Desktop Table Layout */}
+       <div className="hidden md:block overflow-x-auto">
+         <table className="w-full bg-card rounded-xl border border-border">
+           <thead className="bg-muted/50">
+             <tr>
+               <th className="p-3 text-left text-sm font-medium text-muted-foreground">Player</th>
+               <th className="p-3 text-left text-sm font-medium text-muted-foreground">Position</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">Apps</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tries</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">Points</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">Tackles</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">MoM</th>
+               <th className="p-3 text-center text-sm font-medium text-muted-foreground">Actions</th>
+             </tr>
+           </thead>
+           <tbody>
+             {playerStats.map((stat) => (
+               <tr key={stat.id} className="border-t border-border hover:bg-muted/30">
+                 <td className="p-3 font-medium text-foreground">{stat.name}</td>
+                 <td className="p-3 text-muted-foreground">{stat.position}</td>
+                 <td className="p-3 text-center text-foreground">{stat.appearances}</td>
+                 <td className="p-3 text-center text-primary font-medium">{stat.tries}</td>
+                 <td className="p-3 text-center text-trojan-gold font-bold">{stat.points}</td>
+                 <td className="p-3 text-center text-foreground">{stat.tackles}</td>
+                 <td className="p-3 text-center text-foreground">{stat.manOfMatch}</td>
+                 <td className="p-3 text-center">
+                   <button onClick={() => handleEdit(stat)} className="p-2 text-primary hover:bg-primary/10 rounded mr-1 active:scale-95"><Edit2 size={16} /></button>
+                   <button onClick={() => handleDeleteStat(stat.id)} className="p-2 text-accent hover:bg-accent/10 rounded active:scale-95"><Trash2 size={16} /></button>
+                 </td>
+               </tr>
+             ))}
+           </tbody>
+         </table>
+       </div>
     </motion.div>
   );
 };
