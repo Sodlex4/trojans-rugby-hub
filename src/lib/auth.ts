@@ -222,33 +222,65 @@ export interface Match {
 
 export const getMatches = async (): Promise<Match[]> => {
   try {
-    return await apiRequest("/matches");
+    const data = await apiRequest("/matches");
+    // Save to localStorage as cache
+    localStorage.setItem(MATCHES_KEY, JSON.stringify(data));
+    return data;
   } catch (e) {
+    console.error("Failed to fetch matches from API, using fallback");
     // Fallback to localStorage
     try {
       const stored = localStorage.getItem(MATCHES_KEY);
       if (stored) return JSON.parse(stored);
+    } catch (e) { }
+    // Fallback to static data
+    try {
+      const { matches } = await import("@/data/matches");
+      return matches || [];
     } catch (e) { }
     return [];
   }
 };
 
 export const saveMatch = async (match: Omit<Match, "id">): Promise<Match> => {
-  return await apiRequest("/matches", {
+  const result = await apiRequest("/matches", {
     method: "POST",
     body: JSON.stringify(match),
   });
+  // Update localStorage cache
+  const cached = localStorage.getItem(MATCHES_KEY);
+  const matches = cached ? JSON.parse(cached) : [];
+  matches.push(result);
+  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  return result;
 };
 
 export const updateMatch = async (id: number, updates: Partial<Match>): Promise<Match> => {
-  return await apiRequest(`/matches/${id}`, {
+  const result = await apiRequest(`/matches/${id}`, {
     method: "PUT",
     body: JSON.stringify(updates),
   });
+  // Update localStorage cache
+  const cached = localStorage.getItem(MATCHES_KEY);
+  if (cached) {
+    const matches = JSON.parse(cached);
+    const index = matches.findIndex((m: any) => m.id === id);
+    if (index !== -1) {
+      matches[index] = { ...matches[index], ...result };
+      localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+    }
+  }
+  return result;
 };
 
 export const deleteMatch = async (id: number): Promise<void> => {
   await apiRequest(`/matches/${id}`, { method: "DELETE" });
+  // Update localStorage cache
+  const cached = localStorage.getItem(MATCHES_KEY);
+  if (cached) {
+    const matches = JSON.parse(cached).filter((m: any) => m.id !== id);
+    localStorage.setItem(MATCHES_KEY, JSON.stringify(matches));
+  }
 };
 
 // ===== LEAGUE TABLE (from backend) =====
