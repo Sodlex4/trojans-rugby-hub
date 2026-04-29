@@ -1,9 +1,25 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, CheckCircle, XCircle, Trophy } from "lucide-react";
-import { getPastResults } from "@/data/matches";
+import { getMatches, type Match } from "@/lib/auth";
 
 const MatchResults = () => {
-  const pastResults = getPastResults();
+  const [pastResults, setPastResults] = useState<Match[]>([]);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      const allMatches = await getMatches();
+      const completed = allMatches
+        .filter(m => m.status === "completed")
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setPastResults(completed);
+    };
+    fetchResults();
+  }, []);
+
+  if (pastResults.length === 0) {
+    return <p className="text-center text-muted-foreground py-8">No match results available.</p>;
+  }
 
   return (
     <div className="space-y-4">

@@ -1,8 +1,23 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Trophy } from "lucide-react";
-import { leagueTable } from "@/data/stats";
+import { getLeagueTable, type LeagueTeam } from "@/lib/auth";
 
 const LeagueTable = () => {
+  const [leagueTable, setLeagueTable] = useState<LeagueTeam[]>([]);
+
+  useEffect(() => {
+    const fetchTable = async () => {
+      const data = await getLeagueTable();
+      setLeagueTable(data);
+    };
+    fetchTable();
+  }, []);
+
+  if (leagueTable.length === 0) {
+    return <p className="text-center text-muted-foreground py-8">League table not available yet.</p>;
+  }
+
   return (
     <div className="bg-card rounded-xl overflow-hidden border border-border">
       <div className="p-4 bg-primary/10 border-b border-border">

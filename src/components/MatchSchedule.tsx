@@ -1,13 +1,27 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Clock, Trophy } from "lucide-react";
-import { matches, getUpcomingMatches, type Match } from "@/data/matches";
+import { getMatches, type Match } from "@/lib/auth";
 
 interface MatchScheduleProps {
   showAll?: boolean;
 }
 
 const MatchSchedule = ({ showAll = false }: MatchScheduleProps) => {
-  const displayMatches = showAll ? getUpcomingMatches() : getUpcomingMatches().slice(0, 3);
+  const [displayMatches, setDisplayMatches] = useState<Match[]>([]);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      const allMatches = await getMatches();
+      const upcoming = allMatches.filter(m => m.status === "scheduled").sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      setDisplayMatches(showAll ? upcoming : upcoming.slice(0, 3));
+    };
+    fetchMatches();
+  }, [showAll]);
+
+  if (displayMatches.length === 0) {
+    return <p className="text-center text-muted-foreground py-8">No upcoming matches scheduled.</p>;
+  }
 
   return (
     <div className="space-y-4">
