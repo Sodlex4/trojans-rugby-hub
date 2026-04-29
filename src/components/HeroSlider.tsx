@@ -53,8 +53,8 @@ const HeroSlider = ({ slides, isLoggedIn, onJoinClick }: HeroSliderProps) => {
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
 
-                {/* Content */}
-                <div className="relative h-full flex items-center pt-20">
+                 {/* Content */}
+                 <div className="relative h-full flex items-center pt-16 sm:pt-20">
                   <div className="container mx-auto px-6">
                     <motion.div
                       className="max-w-2xl"
