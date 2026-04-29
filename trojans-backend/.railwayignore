@@ -1,0 +1,8 @@
+node_modules
+.env
+*.md
+.vscode
+.idea
+target/
+uploads/
+trojans.db
