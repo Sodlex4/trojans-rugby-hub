@@ -15,9 +15,9 @@ const StatsTab = () => {
   const [showStatForm, setShowStatForm] = useState(false);
   const [editingStat, setEditingStat] = useState<Partial<PlayerStat> | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     fetchStats();
-  });
+  }, []);
 
   const fetchStats = async () => {
     try {
