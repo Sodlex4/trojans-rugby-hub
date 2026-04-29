@@ -25,7 +25,7 @@ const Header = ({
   const [logoSrc, setLogoSrc] = useState<string>("/logo.jpg");
 
   useEffect(() => {
-    setLogoSrc(getSiteLogo());
+    getSiteLogo().then(setLogoSrc);
   }, []);
 
   const navItems = ["home", "about", "team", "matches", "stats", "news", "contact"];

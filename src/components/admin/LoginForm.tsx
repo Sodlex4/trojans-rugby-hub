@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { login, isAdmin } from "@/lib/auth";
+import { login, getSiteLogo } from "@/lib/auth";
 
 interface LoginFormProps {
   onLoginSuccess: () => void;
@@ -13,6 +13,10 @@ const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/logo.jpg");
+
+  useEffect(() => {
+    getSiteLogo().then(setLoginLogo);
+  }, []);
 
   const handleLogin = async () => {
     if (!loginForm.username || !loginForm.password) {
