@@ -42,44 +42,61 @@ const MatchSchedule = ({ showAll = false }: MatchScheduleProps) => {
             </div>
           </div>
 
-          {/* Match Teams */}
-          <div className="flex items-center justify-between mt-3">
-            {/* Trojans */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">T</span>
-              </div>
-              <div>
-                <p className="font-bold text-foreground">Trojans RFC</p>
-                <p className="text-xs text-muted-foreground">Murang'a</p>
-              </div>
-            </div>
+           {/* Match Teams - Mobile: Stack vertically, Desktop: horizontal */}
+           <div className="mt-3">
+             {/* Mobile Layout */}
+             <div className="block sm:hidden space-y-3">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                     <span className="text-primary-foreground font-bold text-base">T</span>
+                   </div>
+                   <div>
+                     <p className="font-bold text-foreground text-sm">Trojans RFC</p>
+                     <p className="text-xs text-muted-foreground">Murang'a</p>
+                   </div>
+                 </div>
+                 <div className="text-center">
+                   <span className="text-xl font-bold text-muted-foreground">VS</span>
+                 </div>
+                 <div className="flex items-center gap-3">
+                   <div className="text-right">
+                     <p className="font-bold text-foreground text-sm">{match.opponent}</p>
+                   </div>
+                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                     <img src={match.opponentLogo} alt={match.opponent} className="w-full h-full object-cover" />
+                   </div>
+                 </div>
+               </div>
+               <p className="text-center text-xs text-muted-foreground">{match.isHome ? "HOME" : "AWAY"}</p>
+             </div>
 
-            {/* VS */}
-            <div className="text-center px-4">
-              <span className="text-2xl font-bold text-muted-foreground">VS</span>
-              <p className="text-xs text-muted-foreground mt-1">
-                {match.isHome ? "HOME" : "AWAY"}
-              </p>
-            </div>
-
-            {/* Opponent */}
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="font-bold text-foreground">{match.opponent}</p>
-                <p className="text-xs text-muted-foreground">
-                  {match.opponent.replace("RFC", "").trim()}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                <img 
-                  src={match.opponentLogo} 
-                  alt={match.opponent}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
+             {/* Desktop Layout */}
+             <div className="hidden sm:flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                 <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                   <span className="text-primary-foreground font-bold text-lg">T</span>
+                 </div>
+                 <div>
+                   <p className="font-bold text-foreground">Trojans RFC</p>
+                   <p className="text-xs text-muted-foreground">Murang'a</p>
+                 </div>
+               </div>
+               <div className="text-center px-4">
+                 <span className="text-2xl font-bold text-muted-foreground">VS</span>
+                 <p className="text-xs text-muted-foreground mt-1">{match.isHome ? "HOME" : "AWAY"}</p>
+               </div>
+               <div className="flex items-center gap-3">
+                 <div className="text-right">
+                   <p className="font-bold text-foreground">{match.opponent}</p>
+                   <p className="text-xs text-muted-foreground">{match.opponent.replace("RFC", "").trim()}</p>
+                 </div>
+                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                   <img src={match.opponentLogo} alt={match.opponent} className="w-full h-full object-cover" />
+                 </div>
+               </div>
+             </div>
+           </div>
 
           {/* Venue */}
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
