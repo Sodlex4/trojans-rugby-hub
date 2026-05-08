@@ -31,3 +31,4 @@ trojans-backend/.settings/
 trojans-backend/.factorypath
 trojans-backend/uploads/
 trojans-backend/*.db
+.vercel

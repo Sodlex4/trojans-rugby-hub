@@ -9,16 +9,35 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
+interface FieldErrors {
+  name?: string;
+  email?: string;
+  message?: string;
+}
+
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [joinForm, setJoinForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const handleJoinSubmit = async () => {
-    if (!joinForm.name || !joinForm.email || !joinForm.message) {
-      toast.error("Please fill in all required fields");
-      return;
+  const validate = (): FieldErrors => {
+    const errs: FieldErrors = {};
+    if (!joinForm.name.trim()) errs.name = "Full name is required";
+    if (!joinForm.email.trim()) {
+      errs.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(joinForm.email)) {
+      errs.email = "Enter a valid email address";
     }
+    if (!joinForm.message.trim()) errs.message = "Message is required";
+    return errs;
+  };
+
+  const handleJoinSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
 
     setIsSubmitting(true);
     try {
@@ -39,6 +58,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleClose = () => {
     setJoinForm({ name: "", email: "", phone: "", message: "" });
+    setErrors({});
     setShowSuccess(false);
     onClose();
   };
@@ -54,7 +74,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
           onClick={handleClose}
         >
           <motion.div
-            className="bg-card rounded-2xl max-w-md w-full p-8 shadow-2xl"
+            className="bg-card rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -62,7 +82,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center px-8 pt-8 pb-4 shrink-0">
               <h2 className="text-2xl font-display font-bold text-primary uppercase">
                 {showSuccess ? "REQUEST SENT" : "JOIN CLUB"}
               </h2>
@@ -74,6 +94,8 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               </button>
             </div>
 
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto px-8 pb-8">
             {/* Success Message */}
             {showSuccess ? (
               <div className="text-center py-6">
@@ -93,7 +115,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               </div>
             ) : (
               /* Join Club Form */
-              <div className="space-y-5">
+              <form onSubmit={handleJoinSubmit} className="space-y-5" noValidate>
                 <p className="text-muted-foreground text-sm mb-4">
                   Fill out the form below to request to join Trojans RFC. We'll review your request and get back to you.
                 </p>
@@ -105,10 +127,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     type="text"
                     placeholder="Enter your full name"
                     value={joinForm.name}
-                    onChange={(e) => setJoinForm({ ...joinForm, name: e.target.value })}
-                    className="input-field"
-                    required
+                    onChange={(e) => {
+                      setJoinForm({ ...joinForm, name: e.target.value });
+                      if (errors.name) setErrors({ ...errors, name: undefined });
+                    }}
+                    className={`input-field ${errors.name ? "ring-2 ring-trojan-red" : ""}`}
                   />
+                  {errors.name && (
+                    <p className="text-trojan-red text-sm mt-1">{errors.name}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-foreground font-semibold mb-2">
@@ -118,10 +145,15 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     type="email"
                     placeholder="Enter your email"
                     value={joinForm.email}
-                    onChange={(e) => setJoinForm({ ...joinForm, email: e.target.value })}
-                    className="input-field"
-                    required
+                    onChange={(e) => {
+                      setJoinForm({ ...joinForm, email: e.target.value });
+                      if (errors.email) setErrors({ ...errors, email: undefined });
+                    }}
+                    className={`input-field ${errors.email ? "ring-2 ring-trojan-red" : ""}`}
                   />
+                  {errors.email && (
+                    <p className="text-trojan-red text-sm mt-1">{errors.email}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-foreground font-semibold mb-2">
@@ -142,21 +174,27 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                   <textarea
                     placeholder="Tell us about yourself and why you want to join..."
                     value={joinForm.message}
-                    onChange={(e) => setJoinForm({ ...joinForm, message: e.target.value })}
-                    className="input-field h-24 resize-none"
-                    required
+                    onChange={(e) => {
+                      setJoinForm({ ...joinForm, message: e.target.value });
+                      if (errors.message) setErrors({ ...errors, message: undefined });
+                    }}
+                    className={`input-field h-24 resize-none ${errors.message ? "ring-2 ring-trojan-red" : ""}`}
                   />
+                  {errors.message && (
+                    <p className="text-trojan-red text-sm mt-1">{errors.message}</p>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-2">
                   <button
+                    type="button"
                     onClick={handleClose}
                     className="flex-1 bg-muted text-foreground px-4 py-3 rounded-xl font-semibold hover:bg-muted/80 transition-colors"
                   >
                     Cancel
                   </button>
                   <motion.button
-                    onClick={handleJoinSubmit}
+                    type="submit"
                     disabled={isSubmitting}
                     className="flex-1 bg-primary text-primary-foreground py-3 rounded-xl 
                              font-display font-bold uppercase
@@ -178,8 +216,9 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
                     )}
                   </motion.button>
                 </div>
-              </div>
+              </form>
             )}
+            </div>
           </motion.div>
         </motion.div>
       )}
