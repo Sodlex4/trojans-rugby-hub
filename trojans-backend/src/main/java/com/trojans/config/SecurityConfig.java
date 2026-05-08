@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/news/**").permitAll()
                 .requestMatchers("/api/settings/**").permitAll()
                 .requestMatchers("/api/join-requests/**").permitAll()
+                .requestMatchers("/api/player-stats/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

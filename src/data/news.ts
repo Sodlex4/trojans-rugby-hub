@@ -8,6 +8,7 @@ export interface NewsItem {
   title: string;
   description: string;
   image: string;
+  status?: "draft" | "published";
 }
 
 export const newsItems: NewsItem[] = [

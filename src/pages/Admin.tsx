@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { LogOut, ArrowLeft, LayoutDashboard, Users, CalendarDays, Trophy, Newspaper, UserPlus, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team";
 import { newsItems as initialNewsItems, type NewsItem } from "@/data/news";
-import { 
+import {
   login, logout, isAuthenticated, isAdmin,
   getAllJoinRequests,
   getSettings, getSiteLogo,
@@ -24,21 +25,32 @@ const AdminPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(isAuthenticated());
   const [isAdminUser, setIsAdminUser] = useState(isAdmin());
   const [activeTab, setActiveTab] = useState("dashboard");
-  
+
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(initialTeamMembers);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(initialNewsItems);
-  const [joinRequests, setJoinRequests] = useState<any[]>([]);
-  const [pendingCount, setPendingCount] = useState(0);
   const [lastRequestCount, setLastRequestCount] = useState(0);
   const [hasNewNotification, setHasNewNotification] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/logo.jpg");
 
+  const { data: joinRequests = [], refetch: refetchJoinRequests } = useQuery({
+    queryKey: ["joinRequests"],
+    queryFn: getAllJoinRequests,
+    enabled: isLoggedIn,
+    refetchInterval: 30000,
+  });
+
+  const pendingCount = joinRequests.filter((r: any) => r.status === "PENDING").length;
+
   useEffect(() => {
-    const fetchLogo = async () => {
-      const logo = await getSiteLogo();
-      setLoginLogo(logo);
-    };
-    fetchLogo();
+    if (joinRequests.length > 0 && lastRequestCount > 0 && joinRequests.length > lastRequestCount) {
+      setHasNewNotification(true);
+      toast.info("New join request received!");
+    }
+    setLastRequestCount(joinRequests.length);
+  }, [joinRequests.length]);
+
+  useEffect(() => {
+    getSiteLogo().then(setLoginLogo);
   }, []);
 
   const handleLoginSuccess = () => {
@@ -56,17 +68,7 @@ const AdminPage = () => {
     setHasNewNotification(false);
   };
 
-  const fetchJoinRequests = async () => {
-    try {
-      const requests = await getAllJoinRequests();
-      setJoinRequests(requests);
-      setPendingCount(requests.filter((r: any) => r.status === "PENDING").length);
-    } catch (error) {
-      console.error("Failed to fetch join requests");
-    }
-  };
-
-  const handleSavePlayer = (player: Partial<TeamMember>) => {
+  const handleSavePlayer = async (player: Partial<TeamMember>) => {
     if (player.id) {
       setTeamMembers(teamMembers.map((p) => (p.id === player.id ? player as TeamMember : p)));
       toast.success("Player updated successfully");
@@ -85,10 +87,8 @@ const AdminPage = () => {
   };
 
   const handleDeletePlayer = (id: number, name: string) => {
-    if (window.confirm(`Are you sure you want to delete ${name}?`)) {
-      setTeamMembers(teamMembers.filter((p) => p.id !== id));
-      toast.success("Player deleted successfully");
-    }
+    setTeamMembers(teamMembers.filter((p) => p.id !== id));
+    toast.success("Player deleted successfully");
   };
 
   const handleSaveNews = (news: Partial<NewsItem>) => {
@@ -102,6 +102,7 @@ const AdminPage = () => {
         title: news.title || "",
         description: news.description || "",
         image: news.image || "https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=600&q=80",
+        status: news.status || "published",
       };
       setNewsItems([...newsItems, newNews]);
       toast.success("News added successfully");
@@ -109,10 +110,8 @@ const AdminPage = () => {
   };
 
   const handleDeleteNews = (id: number, title: string) => {
-    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
-      setNewsItems(newsItems.filter((n) => n.id !== id));
-      toast.success("News deleted successfully");
-    }
+    setNewsItems(newsItems.filter((n) => n.id !== id));
+    toast.success("News deleted successfully");
   };
 
   const handleSettingsChange = async () => {
@@ -155,7 +154,7 @@ const AdminPage = () => {
             </button>
           </div>
         </div>
-      
+
         <div className="container mx-auto px-4 md:px-6">
           <nav className="flex gap-1 overflow-x-auto pb-1">
             {[
@@ -164,7 +163,7 @@ const AdminPage = () => {
               { id: "matches", label: "Matches", icon: CalendarDays },
               { id: "stats", label: "Stats", icon: Trophy },
               { id: "news", label: "News", icon: Newspaper },
-              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: pendingCount, hasNotification: hasNewNotification },
+              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: pendingCount, hasNotification },
               { id: "settings", label: "Settings", icon: Settings },
             ].map((tab) => (
               <button
@@ -201,18 +200,18 @@ const AdminPage = () => {
 
       <main className="container mx-auto px-4 md:px-6 py-6">
         {activeTab === "dashboard" && (
-          <DashboardTab 
+          <DashboardTab
             teamMembers={teamMembers}
             newsItems={newsItems}
             joinRequests={joinRequests}
             setActiveTab={setActiveTab}
-            setJoinRequests={setJoinRequests}
-            setPendingCount={setPendingCount}
+            setJoinRequests={() => {}}
+            setPendingCount={() => {}}
           />
         )}
 
         {activeTab === "players" && (
-          <PlayersTab 
+          <PlayersTab
             players={teamMembers}
             onSavePlayer={handleSavePlayer}
             onDeletePlayer={handleDeletePlayer}
@@ -224,14 +223,14 @@ const AdminPage = () => {
         {activeTab === "stats" && <StatsTab />}
 
         {activeTab === "news" && (
-          <NewsTab 
+          <NewsTab
             newsItems={newsItems}
             onSaveNews={handleSaveNews}
             onDeleteNews={handleDeleteNews}
           />
         )}
 
-        {activeTab === "joinRequests" && <JoinRequestsTab onRefresh={fetchJoinRequests} />}
+        {activeTab === "joinRequests" && <JoinRequestsTab onRefresh={() => refetchJoinRequests()} />}
 
         {activeTab === "settings" && <SettingsTab onSettingsChange={handleSettingsChange} />}
       </main>

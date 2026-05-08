@@ -1,6 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
-// Initialize default admin credentials if not present
 if (!localStorage.getItem("trojans_admin_creds")) {
   localStorage.setItem("trojans_admin_creds", JSON.stringify({
     username: "admin",
@@ -71,12 +70,8 @@ const AUTH_STORAGE_KEY = "trojans_auth";
 export const getStoredAuth = (): AuthState => {
   try {
     const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error("Failed to parse auth from storage");
-  }
+    if (stored) return JSON.parse(stored);
+  } catch { }
   return { isAuthenticated: false, token: null, username: null, role: null };
 };
 
@@ -88,7 +83,6 @@ export const clearStoredAuth = (): void => {
   localStorage.removeItem(AUTH_STORAGE_KEY);
 };
 
-// API helper
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = getToken();
   const headers: HeadersInit = {
@@ -96,18 +90,20 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
-  
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-  
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: "Request failed" }));
     throw new Error(error.error || `HTTP ${response.status}`);
   }
-  
-  return response.json();
+
+  const json = await response.json();
+
+  if (json && typeof json === "object" && "success" in json && "data" in json) {
+    return json.data;
+  }
+  return json;
 };
 
 export const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
@@ -124,25 +120,19 @@ export const login = async (username: string, password: string): Promise<{ succe
     };
     setStoredAuth(auth);
     return { success: true };
-  } catch (error) {
-    // Fallback: Check localStorage for admin credentials
+  } catch {
     try {
       const storedCreds = localStorage.getItem("trojans_admin_creds");
       if (storedCreds) {
         const creds = JSON.parse(storedCreds);
         if (creds.username === username && creds.password === password) {
-          const auth: AuthState = {
-            isAuthenticated: true,
-            token: null,
-            username: username,
-            role: "ADMIN",
-          };
+          const auth: AuthState = { isAuthenticated: true, token: null, username, role: "ADMIN" };
           setStoredAuth(auth);
           return { success: true };
         }
       }
-    } catch (e) {}
-    return { success: false, error: error instanceof Error ? error.message : "Login failed" };
+    } catch { }
+    return { success: false, error: "Invalid credentials" };
   }
 };
 
@@ -153,93 +143,73 @@ export const logout = (): void => {
 
 export const isAuthenticated = (): boolean => {
   const auth = getStoredAuth();
-  return auth.isAuthenticated && auth.token !== null;
+  return auth.isAuthenticated;
 };
 
 export const getToken = (): string | null => {
-  const auth = getStoredAuth();
-  return auth.token;
-};
-
-export const getAuthHeaders = (): HeadersInit => {
-  const token = getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return getStoredAuth().token;
 };
 
 export const isAdmin = (): boolean => {
-  const auth = getStoredAuth();
-  return auth.role === "ADMIN";
+  return getStoredAuth().role === "ADMIN";
+};
+
+const withFallback = async <T>(fn: () => Promise<T>, fallback: T): Promise<T> => {
+  try {
+    return await fn();
+  } catch {
+    return fallback;
+  }
 };
 
 // ===== SETTINGS =====
 export const getSettings = async (): Promise<Settings> => {
   try {
-    const settingsArray = await apiRequest("/settings");
+    const settingsArray: { settingKey: string; settingValue: string }[] = await apiRequest("/settings");
     const settingsMap: Partial<Settings> = {};
-    settingsArray.forEach((s: any) => {
+    settingsArray.forEach((s) => {
       (settingsMap as any)[s.settingKey] = s.settingValue;
     });
     return { ...defaultSettings, ...settingsMap };
-  } catch (e) {
-    // Fallback to localStorage
+  } catch {
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (stored) return { ...defaultSettings, ...JSON.parse(stored) };
-    } catch (e) { }
+    } catch { }
     return defaultSettings;
   }
 };
 
 export const saveSettings = async (settings: Settings): Promise<void> => {
   try {
-    // Save each setting to backend
+    const entries: Record<string, string> = {};
     for (const [key, value] of Object.entries(settings)) {
-      await apiRequest("/settings", {
-        method: "POST",
-        body: JSON.stringify({ settingKey: key, settingValue: String(value) }),
-      });
+      entries[key] = String(value);
     }
-  } catch (e) {
-    // Fallback to localStorage
+    await apiRequest("/settings/batch", {
+      method: "POST",
+      body: JSON.stringify(entries),
+    });
+  } catch {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
-};
-
-export const updateSettings = async (updates: Partial<Settings>): Promise<Settings> => {
-  const current = await getSettings();
-  const updated = { ...current, ...updates };
-  await saveSettings(updated);
-  return updated;
 };
 
 export const getSiteLogo = async (): Promise<string> => {
   try {
     const settings = await getSettings();
     return settings.siteLogo || "/logo.jpg";
-  } catch (e) {
-    // Fallback to localStorage
-    try {
-      const stored = localStorage.getItem(SETTINGS_KEY);
-      if (stored) {
-        const s = JSON.parse(stored);
-        return s.siteLogo || "/logo.jpg";
-      }
-    } catch (e) {}
+  } catch {
     return "/logo.jpg";
   }
 };
 
-// ===== PLAYERS (from backend) =====
+// ===== PLAYERS =====
 export const getPlayers = async (): Promise<any[]> => {
-  try {
-    return await apiRequest("/players");
-  } catch (e) {
-    console.error("Failed to fetch players from API");
-    return [];
-  }
+  return withFallback(() => apiRequest("/players"), []);
 };
 
-// ===== MATCHES (from backend) =====
+// ===== MATCHES =====
 export interface Match {
   id: number;
   date: string;
@@ -259,21 +229,17 @@ export interface Match {
 export const getMatches = async (): Promise<Match[]> => {
   try {
     const data = await apiRequest("/matches");
-    // Save to localStorage as cache
     localStorage.setItem(MATCHES_KEY, JSON.stringify(data));
     return data;
-  } catch (e) {
-    console.error("Failed to fetch matches from API, using fallback");
-    // Fallback to localStorage
+  } catch {
     try {
       const stored = localStorage.getItem(MATCHES_KEY);
       if (stored) return JSON.parse(stored);
-    } catch (e) { }
-    // Fallback to static data
+    } catch { }
     try {
       const { matches } = await import("@/data/matches");
       return matches || [];
-    } catch (e) { }
+    } catch { }
     return [];
   }
 };
@@ -283,7 +249,6 @@ export const saveMatch = async (match: Omit<Match, "id">): Promise<Match> => {
     method: "POST",
     body: JSON.stringify(match),
   });
-  // Update localStorage cache
   const cached = localStorage.getItem(MATCHES_KEY);
   const matches = cached ? JSON.parse(cached) : [];
   matches.push(result);
@@ -296,7 +261,6 @@ export const updateMatch = async (id: number, updates: Partial<Match>): Promise<
     method: "PUT",
     body: JSON.stringify(updates),
   });
-  // Update localStorage cache
   const cached = localStorage.getItem(MATCHES_KEY);
   if (cached) {
     const matches = JSON.parse(cached);
@@ -311,7 +275,6 @@ export const updateMatch = async (id: number, updates: Partial<Match>): Promise<
 
 export const deleteMatch = async (id: number): Promise<void> => {
   await apiRequest(`/matches/${id}`, { method: "DELETE" });
-  // Update localStorage cache
   const cached = localStorage.getItem(MATCHES_KEY);
   if (cached) {
     const matches = JSON.parse(cached).filter((m: any) => m.id !== id);
@@ -319,7 +282,7 @@ export const deleteMatch = async (id: number): Promise<void> => {
   }
 };
 
-// ===== LEAGUE TABLE (from backend) =====
+// ===== LEAGUE TABLE =====
 export interface LeagueTeam {
   position: number;
   team: string;
@@ -337,32 +300,18 @@ export interface LeagueTeam {
 export const getLeagueTable = async (): Promise<LeagueTeam[]> => {
   try {
     return await apiRequest("/league-table");
-  } catch (e) {
-    // Fallback to localStorage
+  } catch {
     try {
       const stored = localStorage.getItem("trojans_league_table");
       if (stored) return JSON.parse(stored);
-    } catch (e) { }
+    } catch { }
     return [];
   }
 };
 
-export const saveLeagueTable = async (table: LeagueTeam[]): Promise<void> => {
-  localStorage.setItem("trojans_league_table", JSON.stringify(table));
-  try {
-    await apiRequest("/league-table", {
-      method: "POST",
-      body: JSON.stringify(table),
-    });
-  } catch (e) { }
-};
-
 // ===== JOIN REQUESTS =====
 export const submitJoinRequest = async (data: {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
+  name: string; email: string; phone: string; message: string;
 }): Promise<{ success: boolean; error?: string }> => {
   try {
     await apiRequest("/join-requests", {
@@ -370,16 +319,14 @@ export const submitJoinRequest = async (data: {
       body: JSON.stringify(data),
     });
     return { success: true };
-  } catch (error) {
-    // Fallback to localStorage
+  } catch {
     const requests = getStoredJoinRequests();
-    const newRequest = {
+    requests.push({
       id: Date.now(),
       ...data,
       status: "PENDING" as const,
       createdAt: new Date().toISOString(),
-    };
-    requests.push(newRequest);
+    });
     localStorage.setItem(JOIN_REQUESTS_KEY, JSON.stringify(requests));
     return { success: true };
   }
@@ -389,14 +336,14 @@ const getStoredJoinRequests = (): JoinRequest[] => {
   try {
     const stored = localStorage.getItem(JOIN_REQUESTS_KEY);
     if (stored) return JSON.parse(stored);
-  } catch (e) { }
+  } catch { }
   return [];
 };
 
 export const getAllJoinRequests = async (): Promise<JoinRequest[]> => {
   try {
     return await apiRequest("/join-requests");
-  } catch (e) {
+  } catch {
     return getStoredJoinRequests();
   }
 };
@@ -404,8 +351,7 @@ export const getAllJoinRequests = async (): Promise<JoinRequest[]> => {
 export const acceptJoinRequest = async (id: number): Promise<void> => {
   try {
     await apiRequest(`/join-requests/${id}/accept`, { method: "PUT" });
-  } catch (e) {
-    // Fallback
+  } catch {
     const requests = getStoredJoinRequests();
     const idx = requests.findIndex(r => r.id === id);
     if (idx !== -1) {
@@ -418,8 +364,7 @@ export const acceptJoinRequest = async (id: number): Promise<void> => {
 export const declineJoinRequest = async (id: number): Promise<void> => {
   try {
     await apiRequest(`/join-requests/${id}/decline`, { method: "PUT" });
-  } catch (e) {
-    // Fallback
+  } catch {
     const requests = getStoredJoinRequests();
     const idx = requests.findIndex(r => r.id === id);
     if (idx !== -1) {
@@ -449,35 +394,54 @@ export interface PlayerStat {
 
 export const getPlayerStats = async (): Promise<PlayerStat[]> => {
   try {
-    // This would need a backend endpoint - for now use localStorage
-    const stored = localStorage.getItem(STATS_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch (e) { }
-  return [];
-};
-
-export const savePlayerStats = async (stats: PlayerStat[]): Promise<void> => {
-  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-};
-
-export const updatePlayerStat = async (id: number, updates: Partial<PlayerStat>): Promise<void> => {
-  const stats = await getPlayerStats();
-  const idx = stats.findIndex(s => s.id === id);
-  if (idx !== -1) {
-    stats[idx] = { ...stats[idx], ...updates };
-    await savePlayerStats(stats);
+    return await apiRequest("/player-stats");
+  } catch {
+    try {
+      const stored = localStorage.getItem(STATS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch { }
+    try {
+      const { playerStats } = await import("@/data/stats");
+      return playerStats || [];
+    } catch { }
+    return [];
   }
 };
 
-export const addPlayerStat = async (stat: Omit<PlayerStat, "id">): Promise<void> => {
-  const stats = await getPlayerStats();
-  const newStat = { ...stat, id: Date.now() };
-  stats.push(newStat);
-  await savePlayerStats(stats);
+export const savePlayerStat = async (stat: Omit<PlayerStat, "id">): Promise<PlayerStat> => {
+  const result = await apiRequest("/player-stats", {
+    method: "POST",
+    body: JSON.stringify(stat),
+  });
+  const cached = localStorage.getItem(STATS_KEY);
+  const stats = cached ? JSON.parse(cached) : [];
+  stats.push(result);
+  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  return result;
+};
+
+export const updatePlayerStat = async (id: number, updates: Partial<PlayerStat>): Promise<PlayerStat> => {
+  const result = await apiRequest(`/player-stats/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
+  const cached = localStorage.getItem(STATS_KEY);
+  if (cached) {
+    const stats = JSON.parse(cached);
+    const idx = stats.findIndex((s: any) => s.id === id);
+    if (idx !== -1) {
+      stats[idx] = { ...stats[idx], ...result };
+      localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    }
+  }
+  return result;
 };
 
 export const deletePlayerStat = async (id: number): Promise<void> => {
-  const stats = await getPlayerStats();
-  const filtered = stats.filter(s => s.id !== id);
-  await savePlayerStats(filtered);
+  await apiRequest(`/player-stats/${id}`, { method: "DELETE" });
+  const cached = localStorage.getItem(STATS_KEY);
+  if (cached) {
+    const stats = JSON.parse(cached).filter((s: any) => s.id !== id);
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  }
 };
