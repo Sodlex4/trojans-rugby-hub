@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type { NewsItem } from "@/data/news";
 import AdminModal from "./AdminModal";
 import ConfirmDialog from "./ConfirmDialog";
+import { handleImgError } from "@/lib/image";
 
 interface NewsTabProps {
   newsItems: NewsItem[];
@@ -191,7 +192,8 @@ const NewsTab = ({ newsItems, onSaveNews, onDeleteNews }: NewsTabProps) => {
             <img
               src={news.image}
               alt={news.title}
-              className="w-24 h-20 rounded-lg object-cover flex-shrink-0"
+              className="w-24 h-20 rounded-lg object-cover flex-shrink-0 bg-muted"
+              onError={handleImgError}
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">

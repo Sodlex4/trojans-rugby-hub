@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { TeamMember } from "@/data/team";
 import AdminModal from "./AdminModal";
 import ConfirmDialog from "./ConfirmDialog";
+import { handleImgError } from "@/lib/image";
 
 interface PlayersTabProps {
   players: TeamMember[];
@@ -23,13 +24,15 @@ const PlayersTab = ({ players, onSavePlayer, onDeletePlayer }: PlayersTabProps) 
   const [editingPlayer, setEditingPlayer] = useState<Partial<TeamMember> | null>(null);
   const [playerSearchQuery, setPlayerSearchQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
-  const filteredPlayers = playerSearchQuery
-    ? players.filter(p =>
-        p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
-        p.position.toLowerCase().includes(playerSearchQuery.toLowerCase())
-      )
-    : players;
+  const filteredPlayers = players
+    .filter(p => categoryFilter === "All" || p.category === categoryFilter)
+    .filter(p =>
+      !playerSearchQuery ||
+      p.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
+      p.position.toLowerCase().includes(playerSearchQuery.toLowerCase())
+    );
 
   const handleSavePlayer = () => {
     if (!editingPlayer?.name || !editingPlayer?.position) {
@@ -71,15 +74,32 @@ const PlayersTab = ({ players, onSavePlayer, onDeletePlayer }: PlayersTabProps) 
         </button>
       </div>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-        <input
-          type="text"
-          placeholder="Search players by name or position..."
-          value={playerSearchQuery}
-          onChange={(e) => setPlayerSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-        />
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+          <input
+            type="text"
+            placeholder="Search players by name or position..."
+            value={playerSearchQuery}
+            onChange={(e) => setPlayerSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+          />
+        </div>
+        <div className="flex gap-2">
+          {["All", "Forwards", "Backs", "Staff"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                categoryFilter === cat
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       <AdminModal
@@ -164,32 +184,33 @@ const PlayersTab = ({ players, onSavePlayer, onDeletePlayer }: PlayersTabProps) 
         {filteredPlayers.map((player) => (
           <div
             key={player.id}
-            className="bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all hover:shadow-md"
+            className="bg-card rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-all hover:shadow-md group"
           >
-            <div className="aspect-[4/3] relative">
+            <div className="aspect-[4/3] relative bg-muted">
               <img
                 src={player.image}
                 alt={player.name}
                 className="w-full h-full object-cover"
+                onError={handleImgError}
               />
-               <div className="absolute top-2 right-2 flex gap-1">
-                 <button
-                   onClick={() => handleEdit(player)}
-                   className="p-2 bg-primary/90 text-primary-foreground rounded-lg hover:bg-primary transition-colors active:scale-95 touch-manipulation"
-                   aria-label="Edit player"
-                 >
-                   <Edit2 size={16} />
-                 </button>
-                 <button
-                   onClick={() => setDeleteTarget({ id: player.id, name: player.name })}
-                   className="p-2 bg-accent/90 text-accent-foreground rounded-lg hover:bg-accent transition-colors active:scale-95 touch-manipulation"
-                   aria-label="Delete player"
-                 >
-                   <Trash2 size={16} />
-                 </button>
-               </div>
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => handleEdit(player)}
+                  className="p-2 bg-primary/90 text-primary-foreground rounded-lg hover:bg-primary transition-colors active:scale-95 touch-manipulation"
+                  aria-label="Edit player"
+                >
+                  <Edit2 size={16} />
+                </button>
+                <button
+                  onClick={() => setDeleteTarget({ id: player.id, name: player.name })}
+                  className="p-2 bg-accent/90 text-accent-foreground rounded-lg hover:bg-accent transition-colors active:scale-95 touch-manipulation"
+                  aria-label="Delete player"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
               {player.number && (
-                <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-lg">
                   {player.number}
                 </div>
               )}

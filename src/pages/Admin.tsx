@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, ArrowLeft, LayoutDashboard, Users, CalendarDays, Trophy, Newspaper, UserPlus, Settings } from "lucide-react";
-import { motion } from "framer-motion";
+import { LogOut, ArrowLeft, LayoutDashboard, Users, CalendarDays, Trophy, Newspaper, UserPlus, Settings, Menu } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { teamMembers as initialTeamMembers, type TeamMember } from "@/data/team";
@@ -11,6 +11,7 @@ import {
   getAllJoinRequests,
   getSettings, getSiteLogo,
 } from "@/lib/auth";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import LoginForm from "@/components/admin/LoginForm";
 import DashboardTab from "@/components/admin/DashboardTab";
 import PlayersTab from "@/components/admin/PlayersTab";
@@ -19,6 +20,17 @@ import StatsTab from "@/components/admin/StatsTab";
 import NewsTab from "@/components/admin/NewsTab";
 import JoinRequestsTab from "@/components/admin/JoinRequestsTab";
 import SettingsTab from "@/components/admin/SettingsTab";
+import ErrorBoundary from "@/components/admin/ErrorBoundary";
+
+const adminTabs = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "players", label: "Players", icon: Users },
+  { id: "matches", label: "Matches", icon: CalendarDays },
+  { id: "stats", label: "Stats", icon: Trophy },
+  { id: "news", label: "News", icon: Newspaper },
+  { id: "joinRequests", label: "Join Requests", icon: UserPlus },
+  { id: "settings", label: "Settings", icon: Settings },
+] as const;
 
 const AdminPage = () => {
   const navigate = useNavigate();
@@ -31,6 +43,7 @@ const AdminPage = () => {
   const [lastRequestCount, setLastRequestCount] = useState(0);
   const [hasNewNotification, setHasNewNotification] = useState(false);
   const [loginLogo, setLoginLogo] = useState("/logo.jpg");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const { data: joinRequests = [], refetch: refetchJoinRequests } = useQuery({
     queryKey: ["joinRequests"],
@@ -66,6 +79,12 @@ const AdminPage = () => {
 
   const handleMarkNotificationSeen = () => {
     setHasNewNotification(false);
+  };
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId === "joinRequests") handleMarkNotificationSeen();
+    setMobileNavOpen(false);
   };
 
   const handleSavePlayer = async (player: Partial<TeamMember>) => {
@@ -136,105 +155,178 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary shadow-lg sticky top-0 z-50">
-        <div className="container mx-auto px-4 md:px-6 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <a href="/" className="flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors">
-                <ArrowLeft size={20} />
-                <span className="hidden sm:inline">Back to Site</span>
-              </a>
-              <div className="w-px h-6 bg-primary-foreground/30 hidden sm:block" />
-              <h1 className="text-lg md:text-xl font-display font-bold text-primary-foreground">Admin Dashboard</h1>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <header className="bg-primary shadow-lg sticky top-0 z-50">
+          <div className="container mx-auto px-4 md:px-6 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <a href="/" className="flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors">
+                  <ArrowLeft size={20} />
+                  <span className="hidden sm:inline">Back to Site</span>
+                </a>
+                <div className="w-px h-6 bg-primary-foreground/30 hidden sm:block" />
+                <h1 className="text-lg md:text-xl font-display font-bold text-primary-foreground">Admin Dashboard</h1>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Mobile nav trigger */}
+                <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+                  <SheetTrigger asChild>
+                    <button
+                      className="md:hidden p-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                      aria-label="Open navigation menu"
+                    >
+                      <Menu size={22} />
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-0">
+                    <SheetHeader className="p-4 border-b border-border">
+                      <SheetTitle className="text-left text-lg">Navigation</SheetTitle>
+                    </SheetHeader>
+                    <nav className="py-2" role="tablist" aria-orientation="vertical">
+                      {adminTabs.map((tab) => {
+                        const isActive = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            role="tab"
+                            aria-selected={isActive}
+                            onClick={() => handleTabChange(tab.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+                              isActive
+                                ? "bg-primary/10 text-primary border-r-2 border-primary"
+                                : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                            }`}
+                          >
+                            <span className="relative">
+                              <tab.icon size={18} />
+                              {tab.id === "joinRequests" && (hasNewNotification || pendingCount > 0) && (
+                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-trojan-red rounded-full animate-pulse" />
+                              )}
+                            </span>
+                            <span className="flex-1 text-left">{tab.label}</span>
+                            {tab.id === "players" && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{teamMembers.length}</span>}
+                            {tab.id === "news" && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{newsItems.length}</span>}
+                            {tab.id === "joinRequests" && pendingCount > 0 && (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold text-white ${hasNewNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>{pendingCount}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                      <div className="border-t border-border mt-2 pt-2 px-4">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-accent hover:bg-accent/10 rounded-lg transition-colors"
+                        >
+                          <LogOut size={18} />
+                          Logout
+                        </button>
+                      </div>
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+
+                <button onClick={handleLogout} className="flex items-center gap-2 bg-accent/90 text-accent-foreground px-4 py-2 rounded-lg font-semibold hover:bg-accent transition-colors text-sm">
+                  <LogOut size={16} />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
             </div>
-            <button onClick={handleLogout} className="flex items-center gap-2 bg-accent/90 text-accent-foreground px-4 py-2 rounded-lg font-semibold hover:bg-accent transition-colors text-sm">
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
           </div>
-        </div>
 
-        <div className="container mx-auto px-4 md:px-6">
-          <nav className="flex gap-1 overflow-x-auto pb-1">
-            {[
-              { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-              { id: "players", label: "Players", icon: Users },
-              { id: "matches", label: "Matches", icon: CalendarDays },
-              { id: "stats", label: "Stats", icon: Trophy },
-              { id: "news", label: "News", icon: Newspaper },
-              { id: "joinRequests", label: "Join Requests", icon: UserPlus, badge: pendingCount, hasNotification },
-              { id: "settings", label: "Settings", icon: Settings },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  if (tab.id === "joinRequests") handleMarkNotificationSeen();
-                }}
-                className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "text-primary-foreground border-primary-foreground bg-white/10"
-                    : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:bg-white/5"
-                }`}
-              >
-                {tab.id === "joinRequests" && (tab.hasNotification || (tab.badge as number) > 0) ? (
-                  <span className="relative">
-                    <tab.icon size={18} />
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-trojan-red rounded-full animate-pulse" />
-                  </span>
-                ) : (
-                  <tab.icon size={18} />
-                )}
-                <span>{tab.label}</span>
-                {tab.id === "players" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{teamMembers.length}</span>}
-                {tab.id === "news" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{newsItems.length}</span>}
-                {tab.id === "joinRequests" && (tab.badge as number) > 0 && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${tab.hasNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>{tab.badge}</span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </header>
+          {/* Desktop nav tabs */}
+          <div className="container mx-auto px-4 md:px-6 hidden md:block">
+            <nav className="flex gap-1" role="tablist" aria-label="Admin sections">
+              {adminTabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`tabpanel-${tab.id}`}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      if (tab.id === "joinRequests") handleMarkNotificationSeen();
+                    }}
+                    className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors border-b-2 whitespace-nowrap ${
+                      isActive
+                        ? "text-primary-foreground border-primary-foreground bg-white/10"
+                        : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:bg-white/5"
+                    }`}
+                  >
+                    {tab.id === "joinRequests" && (hasNewNotification || pendingCount > 0) ? (
+                      <span className="relative">
+                        <tab.icon size={18} />
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-trojan-red rounded-full animate-pulse" />
+                      </span>
+                    ) : (
+                      <tab.icon size={18} />
+                    )}
+                    <span>{tab.label}</span>
+                    {tab.id === "players" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{teamMembers.length}</span>}
+                    {tab.id === "news" && <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{newsItems.length}</span>}
+                    {tab.id === "joinRequests" && pendingCount > 0 && (
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${hasNewNotification ? "bg-trojan-red animate-pulse" : "bg-trojan-red"}`}>{pendingCount}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </header>
 
-      <main className="container mx-auto px-4 md:px-6 py-6">
-        {activeTab === "dashboard" && (
-          <DashboardTab
-            teamMembers={teamMembers}
-            newsItems={newsItems}
-            joinRequests={joinRequests}
-            setActiveTab={setActiveTab}
-            setJoinRequests={() => {}}
-            setPendingCount={() => {}}
-          />
-        )}
+        <main className="container mx-auto px-4 md:px-6 py-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.15 }}
+              role="tabpanel"
+              id={`tabpanel-${activeTab}`}
+              aria-label={adminTabs.find((t) => t.id === activeTab)?.label}
+            >
+              {activeTab === "dashboard" && (
+                <DashboardTab
+                  teamMembers={teamMembers}
+                  newsItems={newsItems}
+                  joinRequests={joinRequests}
+                  setActiveTab={setActiveTab}
+                  setJoinRequests={() => {}}
+                  setPendingCount={() => {}}
+                />
+              )}
 
-        {activeTab === "players" && (
-          <PlayersTab
-            players={teamMembers}
-            onSavePlayer={handleSavePlayer}
-            onDeletePlayer={handleDeletePlayer}
-          />
-        )}
+              {activeTab === "players" && (
+                <PlayersTab
+                  players={teamMembers}
+                  onSavePlayer={handleSavePlayer}
+                  onDeletePlayer={handleDeletePlayer}
+                />
+              )}
 
-        {activeTab === "matches" && <MatchesTab teamMembers={teamMembers} />}
+              {activeTab === "matches" && <MatchesTab teamMembers={teamMembers} />}
 
-        {activeTab === "stats" && <StatsTab />}
+              {activeTab === "stats" && <StatsTab />}
 
-        {activeTab === "news" && (
-          <NewsTab
-            newsItems={newsItems}
-            onSaveNews={handleSaveNews}
-            onDeleteNews={handleDeleteNews}
-          />
-        )}
+              {activeTab === "news" && (
+                <NewsTab
+                  newsItems={newsItems}
+                  onSaveNews={handleSaveNews}
+                  onDeleteNews={handleDeleteNews}
+                />
+              )}
 
-        {activeTab === "joinRequests" && <JoinRequestsTab onRefresh={() => refetchJoinRequests()} />}
+              {activeTab === "joinRequests" && <JoinRequestsTab onRefresh={() => refetchJoinRequests()} />}
 
-        {activeTab === "settings" && <SettingsTab onSettingsChange={handleSettingsChange} />}
-      </main>
-    </div>
+              {activeTab === "settings" && <SettingsTab onSettingsChange={handleSettingsChange} />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 };
 

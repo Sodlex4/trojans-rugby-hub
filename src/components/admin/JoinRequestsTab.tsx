@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, X, Mail, Phone, Calendar, UserPlus } from "lucide-react";
+import { Check, X, Mail, Phone, Calendar, UserPlus, Filter } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { getAllJoinRequests, acceptJoinRequest, declineJoinRequest, type JoinRequest } from "@/lib/auth";
@@ -9,9 +9,12 @@ interface JoinRequestsTabProps {
   onRefresh: () => void;
 }
 
+const FILTERS = ["All", "PENDING", "ACCEPTED", "DECLINED"] as const;
+
 const JoinRequestsTab = ({ onRefresh }: JoinRequestsTabProps) => {
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
 
   useEffect(() => {
     fetchJoinRequests();
@@ -51,17 +54,76 @@ const JoinRequestsTab = ({ onRefresh }: JoinRequestsTabProps) => {
     }
   };
 
+  const handleAcceptAllPending = async () => {
+    const pending = joinRequests.filter(r => r.status === "PENDING");
+    if (!pending.length) return;
+    for (const req of pending) {
+      await acceptJoinRequest(req.id);
+    }
+    toast.success(`Accepted ${pending.length} request${pending.length > 1 ? "s" : ""}`);
+    fetchJoinRequests();
+    onRefresh();
+  };
+
+  const filteredRequests = statusFilter === "All"
+    ? joinRequests
+    : joinRequests.filter(r => r.status === statusFilter);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
 
+  const pendingCount = joinRequests.filter(r => r.status === "PENDING").length;
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold text-foreground">Join Requests</h2>
-        <span className="text-sm text-muted-foreground">{joinRequests.filter(r => r.status === "PENDING").length} pending</span>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Join Requests</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {pendingCount} pending {pendingCount > 0 && <span className="inline-flex items-center gap-1 ml-1">· <span className="w-2 h-2 bg-trojan-gold rounded-full animate-pulse inline-block" /></span>}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          {pendingCount > 0 && (
+            <button
+              onClick={handleAcceptAllPending}
+              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:bg-trojan-green-dark transition-colors"
+            >
+              <Check size={16} />
+              Accept All
+            </button>
+          )}
+          <button
+            onClick={fetchJoinRequests}
+            disabled={isLoading}
+            className="flex items-center gap-2 bg-muted text-foreground px-3 py-2 rounded-lg text-sm font-medium hover:bg-muted/80 transition-colors disabled:opacity-50"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex gap-2 mb-6">
+        {FILTERS.map((f) => (
+          <button
+            key={f}
+            onClick={() => setStatusFilter(f)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === f
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
+            }`}
+          >
+            {f === "All" ? "All" : f.charAt(0) + f.slice(1).toLowerCase()}
+            <span className="ml-1.5 text-xs opacity-70">
+              ({f === "All" ? joinRequests.length : joinRequests.filter(r => r.status === f).length})
+            </span>
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
@@ -75,14 +137,16 @@ const JoinRequestsTab = ({ onRefresh }: JoinRequestsTabProps) => {
             </div>
           ))}
         </div>
-      ) : joinRequests.length === 0 ? (
+      ) : filteredRequests.length === 0 ? (
         <div className="text-center py-12 bg-card rounded-xl border border-border">
           <UserPlus className="mx-auto text-muted-foreground mb-4" size={40} />
-          <p className="text-muted-foreground">No join requests yet</p>
+          <p className="text-muted-foreground">
+            {statusFilter === "All" ? "No join requests yet" : `No ${statusFilter.toLowerCase()} requests`}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {joinRequests.map((request) => (
+          {filteredRequests.map((request) => (
             <div
               key={request.id}
               className={`bg-card rounded-xl p-5 border transition-all hover:shadow-md ${

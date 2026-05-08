@@ -263,15 +263,41 @@ const MatchesTab = ({ teamMembers }: MatchesTabProps) => {
       ) : (
         <div className="space-y-4">
           {matches.map((match: Match) => (
-            <div key={match.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between">
+            <div key={match.id} className="bg-card rounded-xl p-4 border border-border flex items-center justify-between hover:shadow-md transition-shadow">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${match.result === "W" ? "bg-primary" : match.result === "L" ? "bg-accent" : "bg-muted"}`}>
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center relative ${
+                  match.result === "W" ? "bg-primary" : match.result === "L" ? "bg-accent" : "bg-muted"
+                }`}>
                   <Trophy size={20} className={match.result === "W" ? "text-primary-foreground" : "text-foreground"} />
+                  {match.status === "live" && (
+                    <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-trojan-red rounded-full animate-ping" />
+                  )}
                 </div>
                 <div>
-                  <p className="font-semibold text-foreground">{match.date} - {match.competition}</p>
-                  <p className="text-sm text-muted-foreground">{match.opponent} @ {match.venue}</p>
-                  {match.status === "completed" && <p className="text-sm font-bold text-primary">{match.trojansScore} - {match.opponentScore} ({match.result})</p>}
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-foreground">{match.date} — {match.competition}</p>
+                    {match.status === "live" && (
+                      <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-trojan-red text-white rounded-full animate-pulse">
+                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                        LIVE
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {match.opponent}
+                    <span className="mx-1.5">·</span>
+                    {match.isHome ? "Home" : "Away"}
+                    <span className="mx-1.5">·</span>
+                    {match.venue}
+                  </p>
+                  {match.status === "completed" && (
+                    <p className="text-sm font-bold text-primary mt-0.5">
+                      {match.trojansScore} – {match.opponentScore}
+                      <span className="ml-1.5 text-xs font-medium text-muted-foreground">
+                        ({match.result === "W" ? "Win" : match.result === "L" ? "Loss" : "Draw"})
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
